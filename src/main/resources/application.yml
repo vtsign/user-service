@@ -1,5 +1,18 @@
 spring:
   application:
     name: user-service
+  cloud:
+    config:
+      enabled: false
+  datasource:
+    url=jdbc:mysql://localhost:3306/shopping_mall
 server:
   port: 8400
+
+  spring.datasource.username=root
+  spring.datasource.password=root
+  spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+  spring.jpa.database-platform = org.hibernate.dialect.MySQL5Dialect
+  spring.jpa.generate-ddl=true
+  spring.jpa.hibernate.ddl-auto = update
+  spring.jpa.show-sql=true
