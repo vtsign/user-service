@@ -1,6 +1,5 @@
 package tech.vtsign.userservice.controller;
 
-import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/user")
