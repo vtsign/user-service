@@ -47,10 +47,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<User> login(String email, String password) {
         Optional<User> opt = userRepository.findByEmail(email);
-        User user = opt.orElseThrow(() -> new UserInvalidEmailOrPassword("Invalid Email or Password"));
-        if (bCryptPasswordEncoder.matches(password, user.getPassword())) {
-            return Optional.of(user);
+        if (opt.isPresent()) {
+            User user = opt.get();
+            if (bCryptPasswordEncoder.matches(password, user.getPassword())) {
+                return Optional.of(user);
+            }
         }
-        return Optional.empty();
+        throw new UserInvalidEmailOrPassword("Invalid Email or Password");
     }
 }

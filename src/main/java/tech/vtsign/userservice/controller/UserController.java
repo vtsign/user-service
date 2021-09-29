@@ -17,6 +17,7 @@ import tech.vtsign.userservice.model.UserResponseDto;
 import tech.vtsign.userservice.service.UserService;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @RestController
