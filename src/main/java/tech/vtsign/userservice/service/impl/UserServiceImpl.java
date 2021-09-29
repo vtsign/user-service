@@ -3,9 +3,8 @@ package tech.vtsign.userservice.service.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import tech.vtsign.userservice.domain.Role;
 import tech.vtsign.userservice.domain.User;
-import tech.vtsign.userservice.exception.SaveError;
+import tech.vtsign.userservice.exception.BadRequest;
 import tech.vtsign.userservice.exception.user.UserInvalidEmailOrPassword;
 import tech.vtsign.userservice.exception.user.UserNotFoundException;
 import tech.vtsign.userservice.repository.UserRepository;
@@ -33,14 +32,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public <S extends User> S save(S user) {
-        try {
-            List<Role> roles = List.of(Role.builder().name("USER").build());
-            user.setRoles(roles);
-            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-            return userRepository.save(user);
-        } catch (Exception e) {
-            throw new SaveError("Save Fail");
-        }
+        Optional<User> byEmail = userRepository.findByEmail(user.getEmail());
+        if (byEmail.isPresent())
+            throw new BadRequest("Email is already in use");
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
     }
 
     @Override
