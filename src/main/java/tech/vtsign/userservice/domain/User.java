@@ -3,19 +3,23 @@ package tech.vtsign.userservice.domain;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.io.Serializable;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class User extends Auditable<String> implements Serializable  {
+public class User extends Auditable<String> implements Serializable {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(generator = "uuid2")
+    @GenericGenerator(name = "uuid2", strategy = "uuid2")
+    @Column(name = "user_uuid", unique = true, updatable = false, columnDefinition = "BINARY(16)")
+    private UUID id;
     @Column(unique = true)
     private String email;
     private String password;
@@ -25,17 +29,18 @@ public class User extends Auditable<String> implements Serializable  {
     private String organization;
     private String address;
     private boolean enabled = true;
-    @ManyToMany
+
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
+            joinColumns = @JoinColumn(name = "user_uuid"),
+            inverseJoinColumns = @JoinColumn(name = "role_uuid"))
     private List<Role> roles;
 
-    @ManyToMany
+    @ManyToMany(cascade = CascadeType.ALL)
     @JoinTable(
             name = "user_permissions",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id"))
+            joinColumns = @JoinColumn(name = "user_uuid"),
+            inverseJoinColumns = @JoinColumn(name = "permission_uuid"))
     private List<Permission> permissions;
 }

@@ -7,17 +7,11 @@ import tech.vtsign.userservice.repository.RoleRepository;
 import tech.vtsign.userservice.service.RoleService;
 
 import java.util.List;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 @Service
 public class RoleServiceImpl implements RoleService {
     private final RoleRepository repository;
-
-    @Override
-    public Optional<Role> findById(long id) {
-        return repository.findById(id);
-    }
 
     @Override
     public List<Role> findAll() {
@@ -30,23 +24,8 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    public Optional<Role> findById(Long aLong) {
-        return repository.findById(aLong);
-    }
-
-    @Override
-    public boolean existsById(Long aLong) {
-        return repository.existsById(aLong);
-    }
-
-    @Override
     public long count() {
         return repository.count();
-    }
-
-    @Override
-    public void deleteById(Long aLong) {
-        repository.deleteById(aLong);
     }
 
     @Override

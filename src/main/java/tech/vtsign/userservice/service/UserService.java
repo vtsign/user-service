@@ -12,13 +12,7 @@ public interface UserService {
 
     <S extends User> S save(S s);
 
-    Optional<User> findById(Long aLong);
-
     long count();
-
-    void deleteById(Long aLong);
-
-    void delete(User user);
 
     Optional<User> login(String email, String password);
 }

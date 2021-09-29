@@ -10,9 +10,11 @@ spring:
     username: root
     password: root
   jpa:
-    hibernate.ddl-auto: create
+    hibernate.ddl-auto: create-drop
     generate-ddl: true
     show-sql: true
 
 server:
   port: 8400
+  servlet:
+    context-path: /user
