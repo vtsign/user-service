@@ -6,7 +6,7 @@ spring:
       enabled: false
   datasource:
     driverClassName: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/user_service
+    url: jdbc:mysql://vtsign.tech:3306/user_service
     username: root
     password: root
   jpa:

@@ -1,7 +1,6 @@
 package tech.vtsign.userservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,7 +43,7 @@ public class UserServiceImpl implements UserService {
             throw new BadRequest("Email is already in use");
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         User userSave = userRepository.save(user);
-        userProducer.sendMessage(TOPIC, userSave);
+        userProducer.sendMessage(userSave);
         return (S) userSave;
     }
 
