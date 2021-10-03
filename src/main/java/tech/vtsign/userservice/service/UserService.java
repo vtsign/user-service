@@ -4,6 +4,7 @@ import tech.vtsign.userservice.domain.User;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public interface UserService {
     User findByEmail(String email);
@@ -15,4 +16,7 @@ public interface UserService {
     long count();
 
     Optional<User> login(String email, String password);
+    User findById(UUID id);
+
+    boolean activation(UUID id);
 }

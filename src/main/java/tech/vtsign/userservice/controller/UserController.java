@@ -15,6 +15,7 @@ import tech.vtsign.userservice.model.UserLoginDto;
 import tech.vtsign.userservice.model.UserRequestDto;
 import tech.vtsign.userservice.model.UserResponseDto;
 import tech.vtsign.userservice.service.UserService;
+import java.util.UUID;
 
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -45,6 +46,7 @@ public class UserController {
         User user = new User();
         BeanUtils.copyProperties(userRequestDto, user);
         userService.save(user);
+
         UserResponseDto responseDto = new UserResponseDto();
         BeanUtils.copyProperties(user, responseDto);
 
@@ -65,5 +67,11 @@ public class UserController {
         UserResponseDto userResponseDto = new UserResponseDto();
         BeanUtils.copyProperties(opt.get(), userResponseDto);
         return ResponseEntity.ok().body(userResponseDto);
+    }
+
+    @GetMapping("/active/{id}")
+    public ResponseEntity<?> active(@PathVariable UUID id){
+        boolean active = userService.activation(id);
+        return ResponseEntity.ok(active);
     }
 }
