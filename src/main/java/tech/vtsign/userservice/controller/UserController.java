@@ -69,7 +69,7 @@ public class UserController {
         return ResponseEntity.ok().body(userResponseDto);
     }
 
-    @GetMapping("/active/{id}")
+    @GetMapping("/activation/{id}")
     public ResponseEntity<?> active(@PathVariable UUID id){
         boolean active = userService.activation(id);
         return ResponseEntity.ok(active);

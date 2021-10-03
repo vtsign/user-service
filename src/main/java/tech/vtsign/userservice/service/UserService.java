@@ -16,6 +16,7 @@ public interface UserService {
     long count();
 
     Optional<User> login(String email, String password);
+
     User findById(UUID id);
 
     boolean activation(UUID id);
