@@ -3,22 +3,7 @@ spring:
     name: user-service
   cloud:
     config:
-      uri: http://localhost:8888
-  datasource:
-    driverClassName: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://vtsign.tech:3306/user_service
-    username: root
-    password: root
-  jpa:
-    hibernate.ddl-auto: create-drop
-    generate-ddl: true
-    show-sql: true
-  kafka:
-    producer:
-      bootstrap-servers: http://vtsign.tech:9092
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-
+      uri: http://vtsign.tech:8888
 server:
   port: 8400
   servlet:
