@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.BadRequest;
+import tech.vtsign.userservice.exception.user.UserInactiveException;
 import tech.vtsign.userservice.exception.user.UserInvalidEmailOrPassword;
 import tech.vtsign.userservice.exception.user.UserNotFoundException;
 import tech.vtsign.userservice.repository.UserRepository;
@@ -53,13 +54,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Optional<User> login(String email, String password) {
+    public Optional<User> login(String email, String password)  {
+
         Optional<User> opt = userRepository.findByEmail(email);
-        if (opt.isPresent()) {
+
+        if(opt.isPresent()) {
             User user = opt.get();
-            if (bCryptPasswordEncoder.matches(password, user.getPassword())) {
-                return Optional.of(user);
+            if(!user.isEnabled()){
+                throw new UserInactiveException("User haven't enabled yet");
             }
+            if (bCryptPasswordEncoder.matches(password, user.getPassword())) {
+                throw new UserInvalidEmailOrPassword("Invalid Email or Password");
+            }
+
+            return Optional.of(user);
         }
         throw new UserInvalidEmailOrPassword("Invalid Email or Password");
 

@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import tech.vtsign.userservice.exception.user.UserInactiveException;
 import tech.vtsign.userservice.exception.user.UserInvalidEmailOrPassword;
 import tech.vtsign.userservice.exception.user.UserNotFoundException;
 import tech.vtsign.userservice.exception.user.UserPasswordNotFound;
@@ -16,7 +17,7 @@ import java.util.Date;
 public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(UserNotFoundException.class)
-    public final ResponseEntity<Object> handleUserNotFound(UserPasswordNotFound ex, WebRequest request) {
+    public final ResponseEntity<Object> handleUserNotFound(UserNotFoundException ex, WebRequest request) {
         ExceptionResponse exceptionResponse =
                 new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false), HttpStatus.NOT_FOUND.value());
 
@@ -76,6 +77,13 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 //        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
 //    }
 
+    @ExceptionHandler(UserInactiveException.class)
+    public final ResponseEntity<Object> handleUserInactiveException(UserInactiveException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse =
+                new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false), HttpStatus.LOCKED.value());
+
+        return new ResponseEntity<>(exceptionResponse, HttpStatus.LOCKED);
+    }
 
     @ExceptionHandler(Exception.class)
     public final ResponseEntity<Object> handleAllExceptions(Exception ex, WebRequest request) {
