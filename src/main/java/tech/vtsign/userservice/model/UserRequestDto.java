@@ -15,7 +15,6 @@ import javax.validation.constraints.NotBlank;
 public class UserRequestDto {
     @Email(message = "Invalid email address")
     @NotBlank(message = "Missing email")
-    @Column(unique = true)
     private String email;
     @NotBlank(message = "Missing password")
     private String password;

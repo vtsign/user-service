@@ -57,11 +57,13 @@ public class UserServiceImpl implements UserService {
 
         if (opt.isPresent()) {
             User user = opt.get();
-            if (!user.isEnabled()) {
-                throw new LockedException("User haven't enabled yet");
-            }
+
             if (bCryptPasswordEncoder.matches(password, user.getPassword())) {
                 throw new UnauthorizedException("Invalid Email or Password");
+            }
+
+            if (!user.isEnabled()) {
+                throw new LockedException("User haven't enabled yet");
             }
 
             return Optional.of(user);

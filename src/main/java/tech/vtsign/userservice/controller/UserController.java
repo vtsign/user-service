@@ -100,7 +100,7 @@ public class UserController {
                     content = {
                             @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
                     }),
-            @ApiResponse(responseCode = "401", description = "Invalid email password",
+            @ApiResponse(responseCode = "403", description = "Invalid email password",
                     content = {
                             @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
                     }),
