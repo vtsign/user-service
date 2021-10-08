@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
@@ -28,11 +29,12 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @RestController
+@Tag(name="User controller")
 public class UserController {
 
     private final UserService userService;
 
-    @Operation(summary = "Get user by email")
+    @Operation(summary = "Get user by email [service call only]")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Found the user",
                     content = {
@@ -55,7 +57,7 @@ public class UserController {
         return ResponseEntity.ok().body(userRes);
     }
 
-    @Operation(summary = "Register account")
+    @Operation(summary = "Register account [service call only]")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Success, user registered",
                     content = {
@@ -90,7 +92,7 @@ public class UserController {
 
     }
 
-    @Operation(summary = "Login account")
+    @Operation(summary = "Login account [service call only]")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login successfully",
                     content = {
