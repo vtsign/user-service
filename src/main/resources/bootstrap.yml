@@ -8,3 +8,8 @@ server:
   port: 8400
   servlet:
     context-path: /user
+  error:
+    whitelabel:
+      enabled: false
+springdoc:
+  version: '1.0'
