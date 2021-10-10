@@ -9,6 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
@@ -24,6 +25,7 @@ import tech.vtsign.userservice.model.UserRequestDto;
 import tech.vtsign.userservice.model.UserResponseDto;
 import tech.vtsign.userservice.service.UserService;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -87,7 +89,6 @@ public class UserController {
         User user = new User();
         BeanUtils.copyProperties(userRequestDto, user);
         userService.save(user);
-
         UserResponseDto responseDto = new UserResponseDto();
         BeanUtils.copyProperties(user, responseDto);
 
@@ -135,6 +136,7 @@ public class UserController {
     }
 
 
+    @SneakyThrows
     @Operation(summary = "Account activation")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success, Account has been activated",
@@ -150,8 +152,9 @@ public class UserController {
                             @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
                     })
     })
+
     @GetMapping("/activation/{id}")
-    public ResponseEntity<Boolean> activation(@PathVariable UUID id) {
+    public ResponseEntity<Boolean> activation(@PathVariable UUID id) throws NoSuchAlgorithmException {
         boolean active = userService.activation(id);
         return ResponseEntity.ok(active);
     }

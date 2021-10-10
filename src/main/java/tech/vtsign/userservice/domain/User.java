@@ -35,6 +35,10 @@ public class User extends Auditable<String> implements Serializable {
     private String address;
     private boolean enabled = false;
     private boolean blocked = false;
+    @JsonProperty("private_key")
+    private String privateKey;
+    @JsonProperty("public_key")
+    private String publicKey;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(

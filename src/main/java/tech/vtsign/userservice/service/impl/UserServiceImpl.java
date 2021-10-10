@@ -7,9 +7,14 @@ import org.springframework.transaction.annotation.Transactional;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.*;
 import tech.vtsign.userservice.repository.UserRepository;
+import tech.vtsign.userservice.service.AzureStorageService;
 import tech.vtsign.userservice.service.UserProducer;
 import tech.vtsign.userservice.service.UserService;
+import tech.vtsign.userservice.utils.KeyGenerator;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -20,6 +25,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final UserProducer userProducer;
+    private final AzureStorageService azureStorageService;
     //    @Value("${spring.application.name}")
     private String TOPIC = "user_test";
 
@@ -80,9 +86,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public boolean activation(UUID id) {
+    public boolean activation(UUID id) throws NoSuchAlgorithmException {
         User user = findById(id);
         user.setEnabled(true);
+        KeyGenerator keyGenerator = new KeyGenerator(2048);
+        PrivateKey privateKey = keyGenerator.getPrivateKey();
+        PublicKey publicKey = keyGenerator.getPublicKey();
+        user.setPrivateKey(azureStorageService.uploadNotOverride(String.format("%s/%s", id, UUID.randomUUID()), privateKey.getEncoded()));
+        user.setPublicKey(azureStorageService.uploadNotOverride(String.format("%s/%s", id, UUID.randomUUID()), publicKey.getEncoded()));
         return true;
     }
 

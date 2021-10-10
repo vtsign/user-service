@@ -1,5 +1,10 @@
 package tech.vtsign.userservice.configuration;
 
+import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobServiceClient;
+import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.common.StorageSharedKeyCredential;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
@@ -23,5 +28,22 @@ public class GlobalConfiguration {
           SecurityContextHolder.getContext().getAuthentication().getName()
          */
         return () -> Optional.ofNullable("admin");
+    }
+
+    @Bean
+    public BlobContainerClient getBlobContainerClient(@Value("${azure.storage.account-name}") String accountName,
+                                                           @Value("${azure.storage.account-key}")  String accountKey,
+                                                           @Value("${azure.storage.container-name}") String containerName) {
+
+        String endpoint = "https://" + accountName + ".blob.core.windows.net";
+        // Create a SharedKeyCredential
+        StorageSharedKeyCredential credential = new StorageSharedKeyCredential(accountName, accountKey);
+        // Create a blobServiceClient
+        BlobServiceClient blobServiceClient = new BlobServiceClientBuilder()
+                .endpoint(endpoint)
+                .credential(credential)
+                .buildClient();
+
+        return blobServiceClient.getBlobContainerClient(containerName);
     }
 }

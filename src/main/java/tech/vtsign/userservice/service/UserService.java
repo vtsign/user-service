@@ -2,6 +2,7 @@ package tech.vtsign.userservice.service;
 
 import tech.vtsign.userservice.domain.User;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,5 +20,5 @@ public interface UserService {
 
     User findById(UUID id);
 
-    boolean activation(UUID id);
+    boolean activation(UUID id) throws NoSuchAlgorithmException;
 }
