@@ -1,6 +1,7 @@
 package tech.vtsign.userservice.controller;
 
 
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -34,6 +35,7 @@ public class UserController {
 
     private final UserService userService;
 
+    @Hidden
     @Operation(summary = "Get user by email [service call only]")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Found the user",
@@ -57,6 +59,7 @@ public class UserController {
         return ResponseEntity.ok().body(userRes);
     }
 
+    @Hidden
     @Operation(summary = "Register account [service call only]")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Success, user registered",
@@ -92,6 +95,7 @@ public class UserController {
 
     }
 
+    @Hidden
     @Operation(summary = "Login account [service call only]")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login successfully",
