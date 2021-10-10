@@ -58,7 +58,7 @@ public class UserServiceImpl implements UserService {
         if (opt.isPresent()) {
             User user = opt.get();
 
-            if (bCryptPasswordEncoder.matches(password, user.getPassword())) {
+            if (!bCryptPasswordEncoder.matches(password, user.getPassword())) {
                 throw new UnauthorizedException("Invalid Email or Password");
             }
 
