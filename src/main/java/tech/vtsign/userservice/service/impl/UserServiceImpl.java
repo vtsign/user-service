@@ -88,6 +88,9 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public boolean activation(UUID id) throws NoSuchAlgorithmException {
         User user = findById(id);
+        if(user.isEnabled()) {
+            return false;
+        }
         user.setEnabled(true);
         KeyGenerator keyGenerator = new KeyGenerator(2048);
         PrivateKey privateKey = keyGenerator.getPrivateKey();
