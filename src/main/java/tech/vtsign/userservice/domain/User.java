@@ -35,6 +35,8 @@ public class User extends Auditable<String> implements Serializable {
     private String address;
     private boolean enabled = false;
     private boolean blocked = false;
+    @JsonProperty("temp_account")
+    private boolean tempAccount = false;
     @JsonProperty("private_key")
     private String privateKey;
     @JsonProperty("public_key")

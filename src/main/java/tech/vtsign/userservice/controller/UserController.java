@@ -62,6 +62,15 @@ public class UserController {
     }
 
     @Hidden
+    @GetMapping("/email")
+    public ResponseEntity<UserResponseDto> retrieveUserByEmail(@RequestParam String email, @RequestParam(required = false) String name) throws NoSuchAlgorithmException {
+        User user = userService.getOrCreateUser(email, name);
+        UserResponseDto userRes = new UserResponseDto();
+        BeanUtils.copyProperties(user, userRes);
+        return ResponseEntity.ok().body(userRes);
+    }
+
+    @Hidden
     @Operation(summary = "Register account [service call only]")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Success, user registered",

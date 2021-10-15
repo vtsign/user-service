@@ -21,4 +21,6 @@ public interface UserService {
     User findById(UUID id);
 
     boolean activation(UUID id) throws NoSuchAlgorithmException;
+
+    User getOrCreateUser(String email, String name) throws NoSuchAlgorithmException;
 }

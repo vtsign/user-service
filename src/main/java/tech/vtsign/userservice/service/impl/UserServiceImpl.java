@@ -42,13 +42,22 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public <S extends User> S save(S user) {
-        Optional<User> byEmail = userRepository.findByEmail(user.getEmail());
-        if (byEmail.isPresent())
-            throw new ConflictException("Email is already in use");
-        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-        User userSave = userRepository.save(user);
-        userProducer.sendMessage(userSave);
-        return (S) userSave;
+        Optional<User> opt = userRepository.findByEmail(user.getEmail());
+        if (opt.isPresent()) {
+            User oldUser = opt.get();
+            if (oldUser.isTempAccount()) {
+                user.setId(oldUser.getId());
+                user.setPrivateKey(oldUser.getPrivateKey());
+                user.setPublicKey(oldUser.getPublicKey());
+            } else {
+                throw new ConflictException("Email is already in use");
+            }
+        }
+
+            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+            User userSave = userRepository.save(user);
+            userProducer.sendMessage(userSave);
+            return (S) userSave;
     }
 
     @Override
@@ -64,7 +73,7 @@ public class UserServiceImpl implements UserService {
         if (opt.isPresent()) {
             User user = opt.get();
 
-            if (!bCryptPasswordEncoder.matches(password, user.getPassword())) {
+            if (user.isTempAccount() || !bCryptPasswordEncoder.matches(password, user.getPassword())) {
                 throw new UnauthorizedException("Invalid Email or Password");
             }
 
@@ -88,17 +97,45 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public boolean activation(UUID id) throws NoSuchAlgorithmException {
         User user = findById(id);
-        if(user.isEnabled()) {
+        if (user.isTempAccount()) {
+            user.setEnabled(true);
+            user.setTempAccount(false);
+            return true;
+        }
+        if (user.isEnabled()) {
             return false;
         }
         user.setEnabled(true);
+        createUserKeyPair(id, user);
+        return true;
+    }
+
+    private void createUserKeyPair(UUID id, User user) throws NoSuchAlgorithmException {
         KeyGenerator keyGenerator = new KeyGenerator(2048);
         PrivateKey privateKey = keyGenerator.getPrivateKey();
         PublicKey publicKey = keyGenerator.getPublicKey();
         user.setPrivateKey(azureStorageService.uploadNotOverride(String.format("%s/%s", id, UUID.randomUUID()), privateKey.getEncoded()));
         user.setPublicKey(azureStorageService.uploadNotOverride(String.format("%s/%s", id, UUID.randomUUID()), publicKey.getEncoded()));
-        return true;
     }
 
+    @Override
+    public User getOrCreateUser(String email, String name) throws NoSuchAlgorithmException {
+        Optional<User> opt = userRepository.findByEmail(email);
+        User user = opt.orElse(null);
+
+        if (user == null) {
+            user = new User();
+            UUID userUUID = UUID.randomUUID();
+            user.setId(userUUID);
+            user.setEmail(email);
+            user.setLastName(name);
+            user.setEnabled(false);
+            user.setTempAccount(true);
+            createUserKeyPair(userUUID, user);
+            userRepository.save(user);
+        }
+
+        return user;
+    }
 
 }
