@@ -27,7 +27,6 @@ public class UserServiceImpl implements UserService {
     private final UserProducer userProducer;
     private final AzureStorageService azureStorageService;
     //    @Value("${spring.application.name}")
-    private String TOPIC = "user_test";
 
     @Override
     public User findByEmail(String email) {
