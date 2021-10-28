@@ -19,7 +19,7 @@ COPY src ./src
 FROM base as build
 RUN ./mvnw package -Dmaven.test.skip=true
 
-FROM adoptopenjdk/openjdk11:jre-11.0.11_9-alpine as production
+FROM adoptopenjdk/openjdk11:jdk-11.0.11_9-alpine as production
 WORKDIR /app
 
 EXPOSE 8400
