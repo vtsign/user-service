@@ -1,5 +1,8 @@
 package tech.vtsign.userservice.service;
 
+import lombok.SneakyThrows;
+import org.springframework.web.multipart.MultipartFile;
+import tech.vtsign.userservice.domain.Signature;
 import tech.vtsign.userservice.domain.User;
 
 import java.security.NoSuchAlgorithmException;
@@ -23,4 +26,7 @@ public interface UserService {
     boolean activation(UUID id) throws NoSuchAlgorithmException;
 
     User getOrCreateUser(String email, String name) throws NoSuchAlgorithmException;
+
+    @SneakyThrows
+    List<Signature> saveSignature(User user, MultipartFile signatureImage, String type);
 }

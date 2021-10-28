@@ -16,10 +16,9 @@ import tech.vtsign.userservice.service.UserProducer;
 @RequiredArgsConstructor
 public class UserProducerImpl implements UserProducer {
 
+    private final KafkaTemplate<String, User> kafkaTemplate;
     @Value("${tech.vtsign.kafka.user-service.register}")
     private String topicUserServiceRegister;
-
-    private final KafkaTemplate<String, User> kafkaTemplate;
 
     @Override
     public void sendMessage(User user) {

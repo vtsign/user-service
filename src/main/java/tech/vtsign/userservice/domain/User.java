@@ -37,10 +37,6 @@ public class User extends Auditable<String> implements Serializable {
     private boolean blocked = false;
     @JsonProperty("temp_account")
     private boolean tempAccount = false;
-    @JsonProperty("private_key")
-    private String privateKey;
-    @JsonProperty("public_key")
-    private String publicKey;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
@@ -55,4 +51,13 @@ public class User extends Auditable<String> implements Serializable {
             joinColumns = @JoinColumn(name = "user_uuid"),
             inverseJoinColumns = @JoinColumn(name = "permission_uuid"))
     private List<Permission> permissions;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "user_uuid")
+    private List<Signature> signatures;
+
+    public String getFullName() {
+        return String.format("%s %s", this.firstName, this.lastName);
+    }
+
 }

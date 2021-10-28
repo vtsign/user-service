@@ -25,6 +25,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         ex.printStackTrace();
         return new ResponseEntity<>(exceptionResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
     @ExceptionHandler(BadRequestException.class)
     public final ResponseEntity<ExceptionResponse> badRequestException(BadRequestException ex, WebRequest request) {
         ExceptionResponse exceptionResponse =
@@ -32,6 +33,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
         return new ResponseEntity<>(exceptionResponse, BadRequestException.status);
     }
+
     @ExceptionHandler(ConflictException.class)
     public final ResponseEntity<ExceptionResponse> handleConflictException(ConflictException ex, WebRequest request) {
         ExceptionResponse exceptionResponse =
@@ -39,6 +41,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
         return new ResponseEntity<>(exceptionResponse, ConflictException.status);
     }
+
     //3
     @ExceptionHandler(ExpiredException.class)
     public final ResponseEntity<ExceptionResponse> handleExpiredException(ExpiredException ex, WebRequest request) {
@@ -47,6 +50,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
         return new ResponseEntity<>(exceptionResponse, ExpiredException.status);
     }
+
     @ExceptionHandler(InvalidFormatException.class)
     public final ResponseEntity<ExceptionResponse> invalidFormatException(InvalidFormatException ex, WebRequest request) {
         ExceptionResponse exceptionResponse =
@@ -54,6 +58,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
         return new ResponseEntity<>(exceptionResponse, InvalidFormatException.status);
     }
+
     //5
     @ExceptionHandler(LockedException.class)
     public final ResponseEntity<ExceptionResponse> lockedException(LockedException ex, WebRequest request) {
@@ -62,6 +67,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
         return new ResponseEntity<>(exceptionResponse, LockedException.status);
     }
+
     @ExceptionHandler(MissingFieldException.class)
     public final ResponseEntity<ExceptionResponse> handleMissingFieldException(MissingFieldException ex, WebRequest request) {
         ExceptionResponse exceptionResponse =
@@ -69,6 +75,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
         return new ResponseEntity<>(exceptionResponse, MissingFieldException.status);
     }
+
     @ExceptionHandler(UnauthorizedException.class)
     public final ResponseEntity<ExceptionResponse> handleUnauthorizedException(UnauthorizedException ex, WebRequest request) {
         ExceptionResponse exceptionResponse =
@@ -76,6 +83,7 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
 
         return new ResponseEntity<>(exceptionResponse, UnauthorizedException.status);
     }
+
     @ExceptionHandler(NotFoundException.class)
     public final ResponseEntity<ExceptionResponse> handleNotFoundException(UnauthorizedException ex, WebRequest request) {
         ExceptionResponse exceptionResponse =

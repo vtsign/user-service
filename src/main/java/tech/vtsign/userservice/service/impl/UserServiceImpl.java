@@ -1,20 +1,22 @@
 package tech.vtsign.userservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import tech.vtsign.userservice.domain.Signature;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.*;
 import tech.vtsign.userservice.repository.UserRepository;
 import tech.vtsign.userservice.service.AzureStorageService;
 import tech.vtsign.userservice.service.UserProducer;
 import tech.vtsign.userservice.service.UserService;
-import tech.vtsign.userservice.utils.KeyGenerator;
+import tech.vtsign.userservice.utils.TextToGraphics;
 
 import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -46,17 +48,16 @@ public class UserServiceImpl implements UserService {
             User oldUser = opt.get();
             if (oldUser.isTempAccount()) {
                 user.setId(oldUser.getId());
-                user.setPrivateKey(oldUser.getPrivateKey());
-                user.setPublicKey(oldUser.getPublicKey());
+                user.setSignatures(oldUser.getSignatures());
             } else {
                 throw new ConflictException("Email is already in use");
             }
         }
 
-            user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
-            User userSave = userRepository.save(user);
-            userProducer.sendMessage(userSave);
-            return (S) userSave;
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        User userSave = userRepository.save(user);
+        userProducer.sendMessage(userSave);
+        return (S) userSave;
     }
 
     @Override
@@ -105,16 +106,22 @@ public class UserServiceImpl implements UserService {
             return false;
         }
         user.setEnabled(true);
-        createUserKeyPair(id, user);
+        createUserSignature(id, user);
         return true;
     }
 
-    private void createUserKeyPair(UUID id, User user) throws NoSuchAlgorithmException {
-        KeyGenerator keyGenerator = new KeyGenerator(2048);
-        PrivateKey privateKey = keyGenerator.getPrivateKey();
-        PublicKey publicKey = keyGenerator.getPublicKey();
-        user.setPrivateKey(azureStorageService.uploadNotOverride(String.format("%s/%s", id, UUID.randomUUID()), privateKey.getEncoded()));
-        user.setPublicKey(azureStorageService.uploadNotOverride(String.format("%s/%s", id, UUID.randomUUID()), publicKey.getEncoded()));
+    private void createUserSignature(UUID id, User user) throws NoSuchAlgorithmException {
+
+        List<Signature> signatures = new ArrayList<>();
+        Signature signature1 = new Signature();
+        Signature signature2 = new Signature();
+        byte[] signatureImage1 = TextToGraphics.generateSignatureStyle1(user.getFullName());
+        byte[] signatureImage2 = TextToGraphics.generateSignatureStyle2(user.getFullName());
+        signature1.setUrl(azureStorageService.uploadNotOverride(String.format("%s/%s.png", id, UUID.randomUUID()), signatureImage1));
+        signature2.setUrl(azureStorageService.uploadNotOverride(String.format("%s/%s.png", id, UUID.randomUUID()), signatureImage2));
+        signatures.add(signature1);
+        signatures.add(signature2);
+        user.setSignatures(signatures);
     }
 
     @Override
@@ -130,11 +137,19 @@ public class UserServiceImpl implements UserService {
             user.setLastName(name);
             user.setEnabled(false);
             user.setTempAccount(true);
-            createUserKeyPair(userUUID, user);
+            createUserSignature(userUUID, user);
             userRepository.save(user);
         }
 
         return user;
     }
 
+    @SneakyThrows
+    @Override
+    public List<Signature> saveSignature(User user, MultipartFile signatureImage, String type) {
+        // SignatureType...
+        // client -> gateway -> auth -> user -> auth -> gateway -> user
+        azureStorageService.uploadNotOverride(String.format("%s/%s.png", user.getId(), UUID.randomUUID()), signatureImage.getBytes());
+        return null;
+    }
 }
