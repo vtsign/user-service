@@ -27,6 +27,8 @@ public interface UserService {
 
     User getOrCreateUser(String email, String name) throws NoSuchAlgorithmException;
 
+    User findUserById(UUID userUUID);
+
     @SneakyThrows
     List<Signature> saveSignature(User user, MultipartFile signatureImage, String type);
 }

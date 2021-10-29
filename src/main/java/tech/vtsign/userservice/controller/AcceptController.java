@@ -72,6 +72,17 @@ public class AcceptController {
     }
 
     @Hidden
+    @GetMapping("/uuid")
+    public ResponseEntity<UserResponseDto> retrieveUser(@RequestParam("user_uuid") UUID userUUID) {
+        System.out.println("User id: " + userUUID);
+        User user = userService.findUserById(userUUID);
+        UserResponseDto userRes = new UserResponseDto();
+        BeanUtils.copyProperties(user, userRes);
+        return ResponseEntity.ok().body(userRes);
+    }
+
+
+    @Hidden
     @Operation(summary = "Register account [service call only]")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Success, user registered",

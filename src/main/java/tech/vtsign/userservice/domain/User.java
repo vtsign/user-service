@@ -52,8 +52,7 @@ public class User extends Auditable<String> implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "permission_uuid"))
     private List<Permission> permissions;
 
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "user_uuid")
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
     private List<Signature> signatures;
 
     public String getFullName() {

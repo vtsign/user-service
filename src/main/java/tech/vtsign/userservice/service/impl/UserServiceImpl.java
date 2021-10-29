@@ -37,6 +37,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public User findUserById(UUID uuid) {
+        Optional<User> opt = userRepository.findById(uuid);
+        return opt.orElseThrow(() -> new NotFoundException("User Not found"));
+    }
+
+    @Override
     public List<User> findAll() {
         return userRepository.findAll();
     }
@@ -152,4 +158,5 @@ public class UserServiceImpl implements UserService {
         azureStorageService.uploadNotOverride(String.format("%s/%s.png", user.getId(), UUID.randomUUID()), signatureImage.getBytes());
         return null;
     }
+
 }
