@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import tech.vtsign.userservice.domain.Permission;
 import tech.vtsign.userservice.domain.Role;
-import tech.vtsign.userservice.domain.Signature;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,7 +25,6 @@ public class UserResponseDto {
     private String address;
     private boolean enabled;
     private boolean blocked;
-    private List<Signature> signatures;
     private List<Role> roles;
     private List<Permission> permissions;
 }

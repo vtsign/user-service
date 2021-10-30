@@ -1,22 +1,15 @@
 package tech.vtsign.userservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
-import tech.vtsign.userservice.domain.Signature;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.*;
 import tech.vtsign.userservice.repository.UserRepository;
-import tech.vtsign.userservice.service.AzureStorageService;
 import tech.vtsign.userservice.service.UserProducer;
 import tech.vtsign.userservice.service.UserService;
-import tech.vtsign.userservice.utils.TextToGraphics;
 
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -27,7 +20,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final UserProducer userProducer;
-    private final AzureStorageService azureStorageService;
     //    @Value("${spring.application.name}")
 
     @Override
@@ -54,7 +46,6 @@ public class UserServiceImpl implements UserService {
             User oldUser = opt.get();
             if (oldUser.isTempAccount()) {
                 user.setId(oldUser.getId());
-                user.setSignatures(oldUser.getSignatures());
             } else {
                 throw new ConflictException("Email is already in use");
             }
@@ -101,7 +92,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public boolean activation(UUID id) throws NoSuchAlgorithmException {
+    public boolean activation(UUID id) {
         User user = findById(id);
         if (user.isTempAccount()) {
             user.setEnabled(true);
@@ -112,26 +103,11 @@ public class UserServiceImpl implements UserService {
             return false;
         }
         user.setEnabled(true);
-        createUserSignature(id, user);
         return true;
     }
 
-    private void createUserSignature(UUID id, User user) throws NoSuchAlgorithmException {
-
-        List<Signature> signatures = new ArrayList<>();
-        Signature signature1 = new Signature();
-        Signature signature2 = new Signature();
-        byte[] signatureImage1 = TextToGraphics.generateSignatureStyle1(user.getFullName());
-        byte[] signatureImage2 = TextToGraphics.generateSignatureStyle2(user.getFullName());
-        signature1.setUrl(azureStorageService.uploadNotOverride(String.format("%s/%s.png", id, UUID.randomUUID()), signatureImage1));
-        signature2.setUrl(azureStorageService.uploadNotOverride(String.format("%s/%s.png", id, UUID.randomUUID()), signatureImage2));
-        signatures.add(signature1);
-        signatures.add(signature2);
-        user.setSignatures(signatures);
-    }
-
     @Override
-    public User getOrCreateUser(String email, String name) throws NoSuchAlgorithmException {
+    public User getOrCreateUser(String email, String name) {
         Optional<User> opt = userRepository.findByEmail(email);
         User user = opt.orElse(null);
 
@@ -143,20 +119,9 @@ public class UserServiceImpl implements UserService {
             user.setLastName(name);
             user.setEnabled(false);
             user.setTempAccount(true);
-            createUserSignature(userUUID, user);
             userRepository.save(user);
         }
 
         return user;
     }
-
-    @SneakyThrows
-    @Override
-    public List<Signature> saveSignature(User user, MultipartFile signatureImage, String type) {
-        // SignatureType...
-        // client -> gateway -> auth -> user -> auth -> gateway -> user
-        azureStorageService.uploadNotOverride(String.format("%s/%s.png", user.getId(), UUID.randomUUID()), signatureImage.getBytes());
-        return null;
-    }
-
 }
