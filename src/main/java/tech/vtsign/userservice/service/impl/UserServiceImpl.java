@@ -113,8 +113,6 @@ public class UserServiceImpl implements UserService {
 
         if (user == null) {
             user = new User();
-            UUID userUUID = UUID.randomUUID();
-            user.setId(userUUID);
             user.setEmail(email);
             user.setLastName(name);
             user.setEnabled(false);
