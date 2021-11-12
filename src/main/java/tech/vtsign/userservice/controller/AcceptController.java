@@ -64,8 +64,11 @@ public class AcceptController {
 
     @Hidden
     @GetMapping("/email")
-    public ResponseEntity<UserResponseDto> retrieveUserByEmail(@RequestParam String email, @RequestParam(required = false) String name) throws NoSuchAlgorithmException {
-        User user = userService.getOrCreateUser(email, name);
+    public ResponseEntity<UserResponseDto> retrieveUserByEmail(@RequestParam String email,
+                                                               @RequestParam(required = false) String phone,
+                                                               @RequestParam(required = false) String name)
+            throws NoSuchAlgorithmException {
+        User user = userService.getOrCreateUser(email, phone, name);
         UserResponseDto userRes = new UserResponseDto();
         BeanUtils.copyProperties(user, userRes);
         return ResponseEntity.ok().body(userRes);

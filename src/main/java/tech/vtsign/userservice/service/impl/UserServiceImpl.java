@@ -107,13 +107,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User getOrCreateUser(String email, String name) {
+    public User getOrCreateUser(String email, String phone, String name) {
         Optional<User> opt = userRepository.findByEmail(email);
         User user = opt.orElse(null);
 
         if (user == null) {
             user = new User();
             user.setEmail(email);
+            user.setPhone(phone);
             user.setLastName(name);
             user.setEnabled(false);
             user.setTempAccount(true);

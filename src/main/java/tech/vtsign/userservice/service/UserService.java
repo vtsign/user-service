@@ -22,7 +22,7 @@ public interface UserService {
 
     boolean activation(UUID id) throws NoSuchAlgorithmException;
 
-    User getOrCreateUser(String email, String name) throws NoSuchAlgorithmException;
+    User getOrCreateUser(String email, String phone, String name) throws NoSuchAlgorithmException;
 
     User findUserById(UUID userUUID);
 
