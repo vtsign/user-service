@@ -4,12 +4,14 @@ import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.common.StorageSharedKeyCredential;
+import feign.codec.ErrorDecoder;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import tech.vtsign.userservice.proxy.FeignCustomErrorDecoder;
 
 import java.util.Optional;
 
@@ -46,4 +48,7 @@ public class GlobalConfiguration {
 
         return blobServiceClient.getBlobContainerClient(containerName);
     }
+
+    @Bean
+    public ErrorDecoder errorDecoder() { return new FeignCustomErrorDecoder();}
 }
