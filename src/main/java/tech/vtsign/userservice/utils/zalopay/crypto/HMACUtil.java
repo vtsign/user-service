@@ -6,14 +6,13 @@
 package tech.vtsign.userservice.utils.zalopay.crypto;
 
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.LinkedList;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 
 public class HMACUtil {
 
@@ -52,15 +51,12 @@ public class HMACUtil {
     /**
      * Calculating a message authentication code (MAC) involving a cryptographic
      * hash function in combination with a secret cryptographic key.
-     *
+     * <p>
      * The result will be represented base64-encoded string.
      *
      * @param algorithm A cryptographic hash function (such as MD5 or SHA-1)
-     *
-     * @param key A secret cryptographic key
-     *
-     * @param data The message to be authenticated
-     *
+     * @param key       A secret cryptographic key
+     * @param data      The message to be authenticated
      * @return Base64-encoded HMAC String
      */
     public static String HMacBase64Encode(final String algorithm, final String key, final String data) {
@@ -74,15 +70,12 @@ public class HMACUtil {
     /**
      * Calculating a message authentication code (MAC) involving a cryptographic
      * hash function in combination with a secret cryptographic key.
-     *
+     * <p>
      * The result will be represented hex string.
      *
      * @param algorithm A cryptographic hash function (such as MD5 or SHA-1)
-     *
-     * @param key A secret cryptographic key
-     *
-     * @param data The message to be authenticated
-     *
+     * @param key       A secret cryptographic key
+     * @param data      The message to be authenticated
      * @return Hex HMAC String
      */
     public static String HMacHexStringEncode(final String algorithm, final String key, final String data) {

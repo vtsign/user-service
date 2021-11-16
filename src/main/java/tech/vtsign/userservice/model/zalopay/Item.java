@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Item{
+public class Item {
     @JsonProperty("itemid")
     public String id;
     @JsonProperty("itemname")
@@ -17,7 +17,8 @@ public class Item{
     public int quantity;
     @JsonProperty("itemprice")
     public int price;
-    public int getAmount(){
+
+    public int getAmount() {
         return quantity * price;
     }
 }

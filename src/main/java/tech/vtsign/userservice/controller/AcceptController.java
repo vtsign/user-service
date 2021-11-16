@@ -205,12 +205,12 @@ public class AcceptController {
 
         OAOrder oaOrder = new OAOrder();
         oaOrder.setAppId(2553);
-        oaOrder.setAppTransId(getCurrentTimeString("yyMMdd") +"_"+ new Random().nextInt(100000));
+        oaOrder.setAppTransId(getCurrentTimeString("yyMMdd") + "_" + new Random().nextInt(100000));
         oaOrder.setAppTime(new Date().getTime());
         oaOrder.setAppUser("user123");
         oaOrder.setAmount(items.stream().mapToInt(Item::getAmount).sum());
         oaOrder.setDescription("VTSign order id " + UUID.randomUUID());
-        if(type.equals("ATM")){
+        if (type.equals("ATM")) {
             oaOrder.setBankCode("");
             oaOrder.setEmbedData("{\"bankgroup\":\"ATM\"}");
         } else {
@@ -223,8 +223,8 @@ public class AcceptController {
 
 
         // app_id +”|”+ app_trans_id +”|”+ appuser +”|”+ amount +"|" + app_time +”|”+ embed_data +"|" +item
-        String data = oaOrder.getAppId() +"|"+ oaOrder.getAppTransId() +"|"+ oaOrder.getAppUser() +"|"+ oaOrder.getAmount()
-                +"|"+ oaOrder.getAppTime() +"|"+ oaOrder.getEmbedData() +"|"+ oaOrder.getItem();
+        String data = oaOrder.getAppId() + "|" + oaOrder.getAppTransId() + "|" + oaOrder.getAppUser() + "|" + oaOrder.getAmount()
+                + "|" + oaOrder.getAppTime() + "|" + oaOrder.getEmbedData() + "|" + oaOrder.getItem();
         oaOrder.setMac(HMACUtil.HMacHexStringEncode(HMACUtil.HMACSHA256, key1, data));
 
         ZaloPayResponse zaloPayResponse = zaloPayServiceProxy.createOrder(oaOrder);
@@ -264,6 +264,7 @@ public class AcceptController {
         String json = ow.writeValueAsString(response);
         return ResponseEntity.ok(json);
     }
+
     private static String getCurrentTimeString(String format) {
         Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("GMT+7"));
         SimpleDateFormat fmt = new SimpleDateFormat(format);
