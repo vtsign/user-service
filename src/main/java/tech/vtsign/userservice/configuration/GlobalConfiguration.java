@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import tech.vtsign.userservice.proxy.FeignCustomErrorDecoder;
 
@@ -25,11 +26,7 @@ public class GlobalConfiguration {
 
     @Bean
     public AuditorAware<String> auditorProvider() {
-        /*
-          if you are using spring security, you can get the currently logged username with following code segment.
-          SecurityContextHolder.getContext().getAuthentication().getName()
-         */
-        return () -> Optional.ofNullable("admin");
+        return () -> Optional.ofNullable(SecurityContextHolder.getContext().getAuthentication().getName());
     }
 
     @Bean
@@ -50,5 +47,7 @@ public class GlobalConfiguration {
     }
 
     @Bean
-    public ErrorDecoder errorDecoder() { return new FeignCustomErrorDecoder();}
+    public ErrorDecoder errorDecoder() {
+        return new FeignCustomErrorDecoder();
+    }
 }

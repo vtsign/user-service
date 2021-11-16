@@ -115,7 +115,14 @@ public class UserServiceImpl implements UserService {
             user = new User();
             user.setEmail(email);
             user.setPhone(phone);
-            user.setLastName(name);
+            String[] names = name.split(" ");
+            String firstName = names[0];
+            String lastName = "";
+            if (names.length > 1) {
+                lastName = name.substring(name.indexOf(" ") + 1);
+            }
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
             user.setEnabled(false);
             user.setTempAccount(true);
             userRepository.save(user);
