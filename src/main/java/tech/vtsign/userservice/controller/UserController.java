@@ -25,7 +25,7 @@ public class UserController {
             ),
     })
     @GetMapping("check_exists")
-    public ResponseEntity<?> checkUserExistByEmail(@RequestParam ("email") String email) {
+    public ResponseEntity<?> checkUserExistByEmail(@RequestParam("email") String email) {
         // tai khoan tam xem nhu chua co tai khoan
         boolean exists = true;
         try {
@@ -34,7 +34,7 @@ public class UserController {
                 exists = false;
             }
         } catch (Exception e) { // UsernameNotFoundException
-           exists = false;
+            exists = false;
         }
 
         return ResponseEntity.ok(exists);

@@ -24,7 +24,7 @@ public class UserRequestDto {
     @JsonProperty("last_name")
     @NotBlank(message = "Missing last name")
     private String lastName;
-    @Pattern(regexp="(^(\\+\\d{1,2}\\s?)?1?\\-?\\.?\\s?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}$)",
+    @Pattern(regexp = "(^(\\+\\d{1,2}\\s?)?1?\\-?\\.?\\s?\\(?\\d{3}\\)?[\\s.-]?\\d{3}[\\s.-]?\\d{4}$)",
             message = "Invalid phone number")
     @NotBlank(message = "Missing phone")
     private String phone;
