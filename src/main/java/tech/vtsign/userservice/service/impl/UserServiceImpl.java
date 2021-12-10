@@ -38,17 +38,17 @@ public class UserServiceImpl implements UserService {
     private final UserProducer userProducer;
     private final ZaloPayServiceProxy zaloPayServiceProxy;
 
-    @Value("tech.vtsign.zalopay.app-id")
+    @Value("${tech.vtsign.zalopay.app-id}")
     private int appId;
-    @Value("tech.vtsign.zalopay.app-user")
+    @Value("${tech.vtsign.zalopay.app-user}")
     private String appUser;
-    @Value("tech.vtsign.zalopay.redirect-url")
+    @Value("${tech.vtsign.zalopay.redirect-url}")
     private String redirectUrl;
-    @Value("tech.vtsign.zalopay.callback-url")
+    @Value("${tech.vtsign.zalopay.callback-url}")
     private String callbackUrl;
-    @Value("tech.vtsign.zalopay.mac-key")
+    @Value("${tech.vtsign.zalopay.mac-key}")
     private String macKey;
-    @Value("tech.vtsign.zalopay.callback-key")
+    @Value("${tech.vtsign.zalopay.callback-key}")
     private String callbackKey;
 
 
