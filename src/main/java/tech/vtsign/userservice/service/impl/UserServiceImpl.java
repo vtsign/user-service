@@ -24,7 +24,11 @@ import tech.vtsign.userservice.service.UserService;
 import tech.vtsign.userservice.utils.TransactionConstant;
 import tech.vtsign.userservice.utils.zalopay.crypto.HMACUtil;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
 import static tech.vtsign.userservice.utils.DateUtil.getCurrentTimeString;
@@ -48,9 +52,26 @@ public class UserServiceImpl implements UserService {
     private String callbackUrl;
     @Value("${tech.vtsign.zalopay.mac-key}")
     private String macKey;
-    @Value("${tech.vtsign.zalopay.callback-key}")
-    private String callbackKey;
+    private static String callbackKey;
 
+    @Value("${tech.vtsign.zalopay.callback-key}")
+    public void setCallbackKey(String key) {
+        UserServiceImpl.callbackKey = key;
+    }
+
+    private static Mac HmacSHA256;
+
+    private static Mac getMac() {
+        if (HmacSHA256 == null) {
+            try {
+                HmacSHA256 = Mac.getInstance("HmacSHA256");
+                HmacSHA256.init(new SecretKeySpec(callbackKey.getBytes(), "HmacSHA256"));
+            } catch (NoSuchAlgorithmException | InvalidKeyException e) {
+                e.printStackTrace();
+            }
+        }
+        return HmacSHA256;
+    }
 
     @Override
     public User findByEmail(String email) {
@@ -124,9 +145,11 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public String updateUserBalance(ZaloPayCallbackRequest zaloPayCallbackRequest) throws JsonProcessingException {
-        String key2 = callbackKey;
+        String dataStr = zaloPayCallbackRequest.getData();
         String reqMac = zaloPayCallbackRequest.getMac();
-        String mac = DatatypeConverter.printHexBinary(key2.getBytes()).toLowerCase();
+        Mac macH256 = getMac();
+        byte[] hashBytes = macH256.doFinal(dataStr.getBytes());
+        String mac = DatatypeConverter.printHexBinary(hashBytes).toLowerCase();
         ZaloPayCallBackResponse response = new ZaloPayCallBackResponse();
         // kiểm tra callback hợp lệ (đến từ ZaloPay server)
         if (!reqMac.equals(mac)) {
@@ -137,13 +160,14 @@ public class UserServiceImpl implements UserService {
         } else {
             // thanh toán thành công
             // merchant cập nhật trạng thái cho đơn hàng
-            log.error("callback hợp lệ");
             ObjectMapper m = new ObjectMapper();
             DataCallBack dataCallBack = null;
             try {
-                dataCallBack = m.readValue(zaloPayCallbackRequest.getData(), DataCallBack.class);
+                dataCallBack = m.readValue(dataStr, DataCallBack.class);
                 log.info("pay success, callback data: {}", dataCallBack);
-                Item item = m.readValue(dataCallBack.getItem(), Item.class);
+                List<Item> items = m.readValue(dataCallBack.getItem(),
+                        m.getTypeFactory().constructCollectionType(List.class, Item.class));
+                Item item = items.get(0);
                 User user = findById(item.getUserId());
                 if (user == null) {
                     log.error("user null");

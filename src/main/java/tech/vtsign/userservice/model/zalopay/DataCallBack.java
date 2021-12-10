@@ -13,16 +13,18 @@ public class DataCallBack {
     private int appId;
     @JsonProperty("app_trans_id")
     private String appTransId;
-    @JsonProperty("app_user")
-    private String appUser;
     @JsonProperty("app_time")
     private long appTime;
+    @JsonProperty("app_user")
+    private String appUser;
     private long amount;
     @JsonProperty("embed_data")
     private String embedData;
     private String item;
     @JsonProperty("zp_trans_id")
     private long zpTransId;
+    @JsonProperty("zp_user_id")
+    private String zpUserId;
     @JsonProperty("server_time")
     private long serverTime;
     private int channel;
