@@ -199,7 +199,6 @@ public class AcceptController {
             @RequestBody ZaloPayCallbackRequest zaloPayCallbackRequest) throws JsonProcessingException {
         log.info("orderCallback: {}", zaloPayCallbackRequest);
         String json = userService.updateUserBalance(zaloPayCallbackRequest);
-
         return ResponseEntity.ok(json);
     }
 

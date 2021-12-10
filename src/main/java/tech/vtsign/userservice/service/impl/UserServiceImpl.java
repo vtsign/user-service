@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -37,6 +38,20 @@ public class UserServiceImpl implements UserService {
     private final UserProducer userProducer;
     private final ZaloPayServiceProxy zaloPayServiceProxy;
 
+    @Value("tech.vtsign.zalopay.app-id")
+    private int appId;
+    @Value("tech.vtsign.zalopay.app-user")
+    private String appUser;
+    @Value("tech.vtsign.zalopay.redirect-url")
+    private String redirectUrl;
+    @Value("tech.vtsign.zalopay.callback-url")
+    private String callbackUrl;
+    @Value("tech.vtsign.zalopay.mac-key")
+    private String macKey;
+    @Value("tech.vtsign.zalopay.callback-key")
+    private String callbackKey;
+
+
     @Override
     public User findByEmail(String email) {
         Optional<User> opt = userRepository.findByEmail(email);
@@ -54,6 +69,7 @@ public class UserServiceImpl implements UserService {
         Optional<User> opt = userRepository.findById(id);
         User user = opt.orElseThrow(() -> new NotFoundException("User not found"));
         BeanUtils.copyProperties(userUpdateDto, user);
+        log.error(user.toString());
         return userRepository.save(user);
     }
 
@@ -76,13 +92,13 @@ public class UserServiceImpl implements UserService {
 
         List<Item> items = List.of(new Item(orderId, id, userDepositDto.getAmount(), type));
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String key1 = "PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL";
+        String key1 = macKey;
 
         OAOrder oaOrder = new OAOrder();
-        oaOrder.setAppId(2553);
+        oaOrder.setAppId(appId);
         oaOrder.setAppTransId(getCurrentTimeString("yyMMdd") + "_" + new Random().nextInt(100000));
         oaOrder.setAppTime(new Date().getTime());
-        oaOrder.setAppUser("user123");
+        oaOrder.setAppUser(appUser);
         oaOrder.setAmount(amount);
         oaOrder.setDescription("VTSign Order ID " + orderId);
         if (type.equals("ATM")) {
@@ -92,8 +108,8 @@ public class UserServiceImpl implements UserService {
             oaOrder.setBankCode(type);
             oaOrder.setEmbedData("{}");
         }
-        oaOrder.setRedirectUrl("https://vtsign.tech/user/profile");
-        oaOrder.setCallbackUrl("https://api.vtsign.tech/user/apt/deposit/callback");
+        oaOrder.setRedirectUrl(redirectUrl);
+        oaOrder.setCallbackUrl(callbackUrl);
         oaOrder.setItem(ow.writeValueAsString(items));
 
 
@@ -108,7 +124,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public String updateUserBalance(ZaloPayCallbackRequest zaloPayCallbackRequest) throws JsonProcessingException {
-        String key2 = "PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL";
+        String key2 = callbackKey;
         String reqMac = zaloPayCallbackRequest.getMac();
         String mac = DatatypeConverter.printHexBinary(key2.getBytes()).toLowerCase();
         ZaloPayCallBackResponse response = new ZaloPayCallBackResponse();
@@ -152,6 +168,32 @@ public class UserServiceImpl implements UserService {
         }
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         return ow.writeValueAsString(response);
+    }
+
+    @Override
+    @Transactional
+    public Boolean updateUserBalance(UUID userId, long amount, String method) {
+        User user = this.findUserById(userId);
+
+        TransactionMoney transactionMoney = new TransactionMoney();
+        transactionMoney.setAmount(amount);
+        transactionMoney.setMethod(method);
+        transactionMoney.setUser(user);
+        if (method.equals(TransactionConstant.DEPOSIT)) {
+            transactionMoney.setStatus(TransactionConstant.DEPOSIT);
+            transactionMoney.setDescription("deposit money for system");
+            user.setBalance(user.getBalance() + amount);
+        }
+        if (method.equals(TransactionConstant.PAYMENT)) {
+            if (user.getBalance() < amount) {
+                return false;
+            }
+            transactionMoney.setStatus(TransactionConstant.PAYMENT);
+            transactionMoney.setDescription("pay money for system");
+            user.setBalance(user.getBalance() - amount);
+
+        }
+        return true;
     }
 
     @Override
@@ -250,4 +292,6 @@ public class UserServiceImpl implements UserService {
 
         return user;
     }
+
+
 }
