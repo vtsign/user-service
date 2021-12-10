@@ -15,4 +15,5 @@ public class Item {
     @JsonProperty("user_id")
     private UUID userId;
     private long amount;
+    private String method;
 }

@@ -155,7 +155,6 @@ public class UserController {
                     .collect(Collectors.joining(";"));
             throw new MissingFieldException(errorMessage);
         }
-
         ZaloPayResponse zaloPayResponse = userService.deposit(userDetails.getUser().getId(), userDepositDto);
         return ResponseEntity.ok(zaloPayResponse);
     }

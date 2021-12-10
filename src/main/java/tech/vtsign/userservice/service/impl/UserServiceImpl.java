@@ -9,6 +9,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tech.vtsign.userservice.domain.TransactionMoney;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.*;
 import tech.vtsign.userservice.model.UserChangePasswordDto;
@@ -19,6 +20,7 @@ import tech.vtsign.userservice.proxy.ZaloPayServiceProxy;
 import tech.vtsign.userservice.repository.UserRepository;
 import tech.vtsign.userservice.service.UserProducer;
 import tech.vtsign.userservice.service.UserService;
+import tech.vtsign.userservice.utils.TransactionConstant;
 import tech.vtsign.userservice.utils.zalopay.crypto.HMACUtil;
 
 import javax.xml.bind.DatatypeConverter;
@@ -72,7 +74,7 @@ public class UserServiceImpl implements UserService {
         String type = userDepositDto.getMethod();
         long amount = userDepositDto.getAmount();
 
-        List<Item> items = List.of(new Item(orderId, id, userDepositDto.getAmount()));
+        List<Item> items = List.of(new Item(orderId, id, userDepositDto.getAmount(), type));
         ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
         String key1 = "PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL";
 
@@ -113,11 +115,13 @@ public class UserServiceImpl implements UserService {
         // kiểm tra callback hợp lệ (đến từ ZaloPay server)
         if (!reqMac.equals(mac)) {
             // callback không hợp lệ
+            log.error("callback không hợp lệ");
             response.setCode(-1);
             response.setMessage("mac not equal");
         } else {
             // thanh toán thành công
             // merchant cập nhật trạng thái cho đơn hàng
+            log.error("callback hợp lệ");
             ObjectMapper m = new ObjectMapper();
             DataCallBack dataCallBack = null;
             try {
@@ -126,10 +130,17 @@ public class UserServiceImpl implements UserService {
                 Item item = m.readValue(dataCallBack.getItem(), Item.class);
                 User user = findById(item.getUserId());
                 if (user == null) {
+                    log.error("user null");
                     response.setCode(-1);
                 } else {
                     log.info("update user balance from {} to {}", user.getBalance(), user.getBalance() + item.getAmount());
                     user.setBalance(user.getBalance() + item.getAmount());
+                    TransactionMoney transactionMoney = new TransactionMoney();
+                    transactionMoney.setAmount(item.getAmount());
+                    transactionMoney.setMethod(item.getMethod());
+                    transactionMoney.setStatus(TransactionConstant.DEPOSIT);
+                    transactionMoney.setDescription("deposit money for system");
+                    transactionMoney.setUser(user);
                 }
                 response.setCode(1);
                 response.setMessage("success");
