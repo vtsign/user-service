@@ -1,6 +1,7 @@
 package tech.vtsign.userservice.service;
 
 import tech.vtsign.userservice.domain.User;
+import tech.vtsign.userservice.model.UserUpdateDto;
 
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
@@ -26,4 +27,5 @@ public interface UserService {
 
     User findUserById(UUID userUUID);
 
+    User updateUser(UUID id, UserUpdateDto userUpdateDto);
 }

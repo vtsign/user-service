@@ -1,11 +1,13 @@
 package tech.vtsign.userservice.service.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.*;
+import tech.vtsign.userservice.model.UserUpdateDto;
 import tech.vtsign.userservice.repository.UserRepository;
 import tech.vtsign.userservice.service.UserProducer;
 import tech.vtsign.userservice.service.UserService;
@@ -32,6 +34,14 @@ public class UserServiceImpl implements UserService {
     public User findUserById(UUID uuid) {
         Optional<User> opt = userRepository.findById(uuid);
         return opt.orElseThrow(() -> new NotFoundException("User Not found"));
+    }
+
+    @Override
+    public User updateUser(UUID id, UserUpdateDto userUpdateDto) {
+        Optional<User> opt = userRepository.findById(id);
+        User user = opt.orElseThrow(() -> new NotFoundException("User not found"));
+        BeanUtils.copyProperties(userUpdateDto, user);
+        return userRepository.save(user);
     }
 
     @Override
