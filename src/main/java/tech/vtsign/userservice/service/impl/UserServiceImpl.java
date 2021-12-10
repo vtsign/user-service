@@ -108,7 +108,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public String updateUserBalance(ZaloPayCallbackRequest zaloPayCallbackRequest) throws JsonProcessingException {
-        String key2 = "PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL";
+        String key2 = "kLtgPl8HHhfvMuDHPwKfgfsY4Ydm9eIz";
         String reqMac = zaloPayCallbackRequest.getMac();
         String mac = DatatypeConverter.printHexBinary(key2.getBytes()).toLowerCase();
         ZaloPayCallBackResponse response = new ZaloPayCallBackResponse();
