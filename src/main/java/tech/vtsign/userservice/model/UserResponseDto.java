@@ -23,6 +23,7 @@ public class UserResponseDto {
     private String phone;
     private String organization;
     private String address;
+    private long balance;
     private boolean enabled;
     private boolean blocked;
     private List<Role> roles;

@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 public class UserUpdateDto {
-    private String password;
     @JsonProperty("first_name")
     private String firstName;
     @JsonProperty("last_name")

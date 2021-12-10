@@ -5,20 +5,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 public class Item {
-    @JsonProperty("itemid")
-    public String id;
-    @JsonProperty("itemname")
-    public String name;
-    @JsonProperty("itemquantity")
-    public int quantity;
-    @JsonProperty("itemprice")
-    public int price;
-
-    public int getAmount() {
-        return quantity * price;
-    }
+    private UUID id;
+    @JsonProperty("user_id")
+    private UUID userId;
+    private long amount;
 }

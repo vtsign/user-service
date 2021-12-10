@@ -1,12 +1,15 @@
 package tech.vtsign.userservice.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
@@ -18,8 +21,10 @@ import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.ExceptionResponse;
 import tech.vtsign.userservice.exception.MissingFieldException;
 import tech.vtsign.userservice.model.UserChangePasswordDto;
+import tech.vtsign.userservice.model.UserDepositDto;
 import tech.vtsign.userservice.model.UserResponseDto;
 import tech.vtsign.userservice.model.UserUpdateDto;
+import tech.vtsign.userservice.model.zalopay.ZaloPayResponse;
 import tech.vtsign.userservice.security.UserDetailsImpl;
 import tech.vtsign.userservice.service.UserService;
 
@@ -27,6 +32,8 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @RestController
+@Tag(name = "User controller")
+@Slf4j
 public class UserController {
 
     private final UserService userService;
@@ -122,6 +129,35 @@ public class UserController {
         User updatedUser = userService.changePassword(user.getId(), userChangePasswordDto);
         BeanUtils.copyProperties(updatedUser, user);
         return ResponseEntity.ok(user);
+    }
+
+    @Operation(summary = "User Deposit money [CC, ATM, zalopayapp]")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = ZaloPayResponse.class))
+            ),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+            @ApiResponse(responseCode = "419", description = "Missing require field see message for more details",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    })
+    })
+    @PostMapping("/deposit")
+    public ResponseEntity<ZaloPayResponse> depositMoney(@Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                        @RequestBody @Validated UserDepositDto userDepositDto, BindingResult result)
+            throws JsonProcessingException {
+        if (result.hasErrors()) {
+            String errorMessage = result.getAllErrors()
+                    .stream().map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.joining(";"));
+            throw new MissingFieldException(errorMessage);
+        }
+
+        ZaloPayResponse zaloPayResponse = userService.deposit(userDetails.getUser().getId(), userDepositDto);
+        return ResponseEntity.ok(zaloPayResponse);
     }
 
 

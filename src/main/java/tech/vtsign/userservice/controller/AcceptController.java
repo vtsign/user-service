@@ -2,8 +2,6 @@ package tech.vtsign.userservice.controller;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -27,15 +25,12 @@ import tech.vtsign.userservice.exception.MissingFieldException;
 import tech.vtsign.userservice.model.UserLoginDto;
 import tech.vtsign.userservice.model.UserRequestDto;
 import tech.vtsign.userservice.model.UserResponseDto;
-import tech.vtsign.userservice.model.zalopay.*;
-import tech.vtsign.userservice.proxy.ZaloPayServiceProxy;
+import tech.vtsign.userservice.model.zalopay.ZaloPayCallbackRequest;
 import tech.vtsign.userservice.service.UserService;
-import tech.vtsign.userservice.utils.zalopay.crypto.HMACUtil;
 
-import javax.xml.bind.DatatypeConverter;
 import java.security.NoSuchAlgorithmException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -46,7 +41,6 @@ import java.util.stream.Collectors;
 public class AcceptController {
 
     private final UserService userService;
-    private final ZaloPayServiceProxy zaloPayServiceProxy;
 
     @Hidden
     @Operation(summary = "Get user by email [service call only]")
@@ -193,82 +187,20 @@ public class AcceptController {
         return ResponseEntity.ok(active);
     }
 
-    // CC, ATM, zalopayapp
-    @GetMapping("/order")
-    public ResponseEntity<ZaloPayResponse> createOrder(
-            @RequestParam(required = false, defaultValue = "zalopayapp") String type) throws JsonProcessingException {
-        List<Item> items = List.of(
-                new Item("item123", "item123", 5, 100000)
-        );
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String key1 = "PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL";
-
-        OAOrder oaOrder = new OAOrder();
-        oaOrder.setAppId(2553);
-        oaOrder.setAppTransId(getCurrentTimeString("yyMMdd") + "_" + new Random().nextInt(100000));
-        oaOrder.setAppTime(new Date().getTime());
-        oaOrder.setAppUser("user123");
-        oaOrder.setAmount(items.stream().mapToInt(Item::getAmount).sum());
-        oaOrder.setDescription("VTSign order id " + UUID.randomUUID());
-        if (type.equals("ATM")) {
-            oaOrder.setBankCode("");
-            oaOrder.setEmbedData("{\"bankgroup\":\"ATM\"}");
-        } else {
-            oaOrder.setBankCode(type);
-            oaOrder.setEmbedData("{}");
-        }
-        oaOrder.setRedirectUrl("https://vtsign.tech/user/profile");
-        oaOrder.setCallbackUrl("https://api.vtsign.tech/user/apt/order/callback");
-        oaOrder.setItem(ow.writeValueAsString(items));
-
-
-        // app_id +”|”+ app_trans_id +”|”+ appuser +”|”+ amount +"|" + app_time +”|”+ embed_data +"|" +item
-        String data = oaOrder.getAppId() + "|" + oaOrder.getAppTransId() + "|" + oaOrder.getAppUser() + "|" + oaOrder.getAmount()
-                + "|" + oaOrder.getAppTime() + "|" + oaOrder.getEmbedData() + "|" + oaOrder.getItem();
-        oaOrder.setMac(HMACUtil.HMacHexStringEncode(HMACUtil.HMACSHA256, key1, data));
-
-        ZaloPayResponse zaloPayResponse = zaloPayServiceProxy.createOrder(oaOrder);
-        return ResponseEntity.ok(zaloPayResponse);
-    }
-
-    @PostMapping("/order/callback")
+    @Operation(summary = "Zalopay callback")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "https://docs.zalopay.vn/v2/general/overview.html",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
+                    }),
+    })
+    @PostMapping("/deposit/callback")
     public ResponseEntity<String> orderCallback(
             @RequestBody ZaloPayCallbackRequest zaloPayCallbackRequest) throws JsonProcessingException {
         log.info("orderCallback: {}", zaloPayCallbackRequest);
-        String key2 = "PcY4iZIKFCIdgZvA6ueMcMHHUbRLYjPL";
-        String reqMac = zaloPayCallbackRequest.getMac();
-        String mac = DatatypeConverter.printHexBinary(key2.getBytes()).toLowerCase();
-        ZaloPayCallBackResponse response = new ZaloPayCallBackResponse();
-        // kiểm tra callback hợp lệ (đến từ ZaloPay server)
-        if (!reqMac.equals(mac)) {
-            // callback không hợp lệ
-            response.setCode(-1);
-            response.setMessage("mac not equal");
-        } else {
-            // thanh toán thành công
-            // merchant cập nhật trạng thái cho đơn hàng
-            ObjectMapper m = new ObjectMapper();
-            DataCallBack dataCallBack = null;
-            try {
-                dataCallBack = m.readValue(zaloPayCallbackRequest.getData(), DataCallBack.class);
-                log.info("pay success, callback data: {}", dataCallBack);
-                response.setCode(1);
-                response.setMessage("success");
-            } catch (JsonProcessingException ex) {
-                response.setCode(0);
-                response.setMessage(ex.getMessage());
-                ex.printStackTrace();
-            }
-        }
-        ObjectWriter ow = new ObjectMapper().writer().withDefaultPrettyPrinter();
-        String json = ow.writeValueAsString(response);
+        String json = userService.updateUserBalance(zaloPayCallbackRequest);
+
         return ResponseEntity.ok(json);
     }
 
-    private static String getCurrentTimeString(String format) {
-        Calendar cal = new GregorianCalendar(TimeZone.getTimeZone("GMT+7"));
-        SimpleDateFormat fmt = new SimpleDateFormat(format);
-        fmt.setCalendar(cal);
-        return fmt.format(cal.getTimeInMillis());
-    }
 }

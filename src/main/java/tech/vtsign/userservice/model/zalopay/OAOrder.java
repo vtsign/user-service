@@ -17,7 +17,7 @@ public class OAOrder {
     private String appTransId;
     @JsonProperty("app_time")
     private long appTime;
-    private int amount;
+    private long amount;
     private String item;
     private String description;
     @JsonProperty("embed_data")
