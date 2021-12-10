@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.*;
+import tech.vtsign.userservice.model.UserChangePasswordDto;
 import tech.vtsign.userservice.model.UserUpdateDto;
 import tech.vtsign.userservice.repository.UserRepository;
 import tech.vtsign.userservice.service.UserProducer;
@@ -41,6 +42,17 @@ public class UserServiceImpl implements UserService {
         Optional<User> opt = userRepository.findById(id);
         User user = opt.orElseThrow(() -> new NotFoundException("User not found"));
         BeanUtils.copyProperties(userUpdateDto, user);
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User changePassword(UUID id, UserChangePasswordDto userChangePasswordDto) {
+        Optional<User> opt = userRepository.findById(id);
+        User user = opt.orElseThrow(() -> new NotFoundException("User not found"));
+        if (!bCryptPasswordEncoder.matches(userChangePasswordDto.getOldPassword(), user.getPassword())) {
+            throw new UnauthorizedException("Invalid old password");
+        }
+        user.setPassword(bCryptPasswordEncoder.encode(userChangePasswordDto.getNewPassword()));
         return userRepository.save(user);
     }
 

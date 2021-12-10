@@ -8,15 +8,22 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.ExceptionResponse;
+import tech.vtsign.userservice.exception.MissingFieldException;
+import tech.vtsign.userservice.model.UserChangePasswordDto;
 import tech.vtsign.userservice.model.UserResponseDto;
 import tech.vtsign.userservice.model.UserUpdateDto;
 import tech.vtsign.userservice.security.UserDetailsImpl;
 import tech.vtsign.userservice.service.UserService;
+
+import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @RestController
@@ -27,7 +34,7 @@ public class UserController {
     @Operation(summary = "Check user exists by email")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "true: exists, false: not exists",
-                    content = @Content
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Boolean.class))
             ),
     })
     @GetMapping("check_exists")
@@ -49,7 +56,7 @@ public class UserController {
     @Operation(summary = "Get user profile")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Get user profile",
-                    content = @Content
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.class))
             ),
             @ApiResponse(responseCode = "404", description = "User not found",
                     content = {
@@ -66,7 +73,7 @@ public class UserController {
     @Operation(summary = "Update user profile")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Update user profile",
-                    content = @Content
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.class))
             ),
             @ApiResponse(responseCode = "404", description = "User not found",
                     content = {
@@ -80,6 +87,39 @@ public class UserController {
                                            @RequestBody UserUpdateDto userUpdateDto) {
         UserResponseDto user = userDetails.getUser();
         User updatedUser = userService.updateUser(user.getId(), userUpdateDto);
+        BeanUtils.copyProperties(updatedUser, user);
+        return ResponseEntity.ok(user);
+    }
+
+    @Operation(summary = "User update password")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Change password successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.class))
+            ),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+            @ApiResponse(responseCode = "403", description = "Old password is incorrect",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+            @ApiResponse(responseCode = "419", description = "Missing require field see message for more details",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    })
+    })
+    @PostMapping("change-password")
+    public ResponseEntity<?> changePassword(@Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
+                                            @RequestBody @Validated UserChangePasswordDto userChangePasswordDto, BindingResult result) {
+        if (result.hasErrors()) {
+            String errorMessage = result.getAllErrors()
+                    .stream().map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.joining(";"));
+            throw new MissingFieldException(errorMessage);
+        }
+        UserResponseDto user = userDetails.getUser();
+        User updatedUser = userService.changePassword(user.getId(), userChangePasswordDto);
         BeanUtils.copyProperties(updatedUser, user);
         return ResponseEntity.ok(user);
     }

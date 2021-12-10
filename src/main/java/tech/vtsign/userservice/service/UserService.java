@@ -1,6 +1,7 @@
 package tech.vtsign.userservice.service;
 
 import tech.vtsign.userservice.domain.User;
+import tech.vtsign.userservice.model.UserChangePasswordDto;
 import tech.vtsign.userservice.model.UserUpdateDto;
 
 import java.security.NoSuchAlgorithmException;
@@ -28,4 +29,6 @@ public interface UserService {
     User findUserById(UUID userUUID);
 
     User updateUser(UUID id, UserUpdateDto userUpdateDto);
+
+    User changePassword(UUID id, UserChangePasswordDto userChangePasswordDto);
 }
