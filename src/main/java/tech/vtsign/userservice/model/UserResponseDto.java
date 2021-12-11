@@ -24,6 +24,7 @@ public class UserResponseDto {
     private String organization;
     private String address;
     private long balance;
+    private String avatar;
     private boolean enabled;
     private boolean blocked;
     private List<Role> roles;

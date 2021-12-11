@@ -1,6 +1,7 @@
 package tech.vtsign.userservice.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import org.springframework.web.multipart.MultipartFile;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.model.UserChangePasswordDto;
 import tech.vtsign.userservice.model.UserDepositDto;
@@ -41,4 +42,6 @@ public interface UserService {
     String updateUserBalance(ZaloPayCallbackRequest zaloPayCallbackRequest) throws JsonProcessingException;
 
     Boolean updateUserBalance(UUID userId, long amount, String status);
+
+    User updateAvatar(UUID id, MultipartFile file);
 }
