@@ -8,7 +8,6 @@ import org.springframework.kafka.support.KafkaHeaders;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.stereotype.Service;
-import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.service.UserProducer;
 
 @Service
@@ -16,14 +15,14 @@ import tech.vtsign.userservice.service.UserProducer;
 @RequiredArgsConstructor
 public class UserProducerImpl implements UserProducer {
 
-    private final KafkaTemplate<String, User> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     @Value("${tech.vtsign.kafka.user-service.register}")
     private String topicUserServiceRegister;
 
     @Override
-    public void sendMessage(User user) {
-        Message<User> message = MessageBuilder
-                .withPayload(user)
+    public void sendMessage(Object object) {
+        Message<Object> message = MessageBuilder
+                .withPayload(object)
                 .setHeader(KafkaHeaders.TOPIC, topicUserServiceRegister)
                 .build();
         this.kafkaTemplate.send(message);

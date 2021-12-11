@@ -13,7 +13,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -122,6 +121,41 @@ public class AcceptController {
         User user = new User();
         BeanUtils.copyProperties(userRequestDto, user);
         userService.save(user);
+        UserResponseDto responseDto = new UserResponseDto();
+        BeanUtils.copyProperties(user, responseDto);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+
+    }
+
+    @Hidden
+    @Operation(summary = "Register account [service call only]")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Success, user registered",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.class))
+                    }),
+            @ApiResponse(responseCode = "419", description = "Missing require field see message for more details",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+            @ApiResponse(responseCode = "409", description = "Email is already in use",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    })
+    })
+    @PostMapping("/register2")
+    public ResponseEntity<UserResponseDto> register2(@Validated @RequestBody UserRequestDto userRequestDto, BindingResult result) {
+        if (result.hasErrors()) {
+            String errorMessage = result.getAllErrors()
+                    .stream().map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.joining(";"));
+
+            throw new MissingFieldException(errorMessage);
+        }
+        User user = new User();
+        BeanUtils.copyProperties(userRequestDto, user);
+        userService.save2(user);
         UserResponseDto responseDto = new UserResponseDto();
         BeanUtils.copyProperties(user, responseDto);
 

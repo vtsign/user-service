@@ -21,6 +21,8 @@ public interface UserService {
 
     <S extends User> S save(S s);
 
+    User save2(User user);
+
     long count();
 
     Optional<User> login(String email, String password);

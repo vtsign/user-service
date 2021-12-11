@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import tech.vtsign.userservice.domain.TransactionMoney;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.*;
+import tech.vtsign.userservice.model.Activation;
 import tech.vtsign.userservice.model.UserChangePasswordDto;
 import tech.vtsign.userservice.model.UserDepositDto;
 import tech.vtsign.userservice.model.UserUpdateDto;
@@ -59,6 +60,8 @@ public class UserServiceImpl implements UserService {
     @Value("${tech.vtsign.zalopay.mac-key}")
     private String macKey;
     private static String callbackKey;
+    @Value("${tech.vtsign.hostname}")
+    private String hostname;
 
     @Value("${tech.vtsign.zalopay.init-balance}")
     private long initBalance = 10000;
@@ -266,8 +269,32 @@ public class UserServiceImpl implements UserService {
 
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         User userSave = userRepository.save(user);
-        userProducer.sendMessage(userSave);
+        Activation activation = new Activation();
+        activation.setTo(user.getEmail());
+        activation.setUrl(String.format("%s/activation/%s", hostname, user.getId()));
+        userProducer.sendMessage(activation);
         return (S) userSave;
+    }
+
+    @Override
+    public User save2(User user) {
+        Optional<User> opt = userRepository.findByEmail(user.getEmail());
+        if (opt.isPresent()) {
+            User oldUser = opt.get();
+            if (oldUser.isTempAccount()) {
+                user.setId(oldUser.getId());
+            } else {
+                throw new ConflictException("Email is already in use");
+            }
+        }
+
+        user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
+        User userSave = userRepository.save(user);
+        Activation activation = new Activation();
+        activation.setTo(user.getEmail());
+        activation.setUrl(String.format("%s/activation/%s", "https://qlda02.herokuapp.com", user.getId()));
+        userProducer.sendMessage(activation);
+        return userSave;
     }
 
     @Override
