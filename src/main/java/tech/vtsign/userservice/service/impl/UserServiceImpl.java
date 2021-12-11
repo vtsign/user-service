@@ -241,7 +241,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Page<TransactionMoney> findAllTransactions(User user, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
+        Pageable pageable = PageRequest.of(page-1, size);
         Page<TransactionMoney> transactionMoneyPage = transactionMoneyRepository.findAll(new Specification<TransactionMoney>() {
             final List<Predicate> predicates = new ArrayList<>();
 
