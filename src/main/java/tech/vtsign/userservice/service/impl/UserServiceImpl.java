@@ -14,6 +14,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 import tech.vtsign.userservice.domain.TransactionMoney;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.*;
@@ -24,6 +25,7 @@ import tech.vtsign.userservice.model.zalopay.*;
 import tech.vtsign.userservice.proxy.ZaloPayServiceProxy;
 import tech.vtsign.userservice.repository.TransactionMoneyRepository;
 import tech.vtsign.userservice.repository.UserRepository;
+import tech.vtsign.userservice.service.AzureStorageService;
 import tech.vtsign.userservice.service.UserProducer;
 import tech.vtsign.userservice.service.UserService;
 import tech.vtsign.userservice.utils.TransactionConstant;
@@ -36,6 +38,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import javax.xml.bind.DatatypeConverter;
+import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -51,6 +54,7 @@ public class UserServiceImpl implements UserService {
     private final UserProducer userProducer;
     private final ZaloPayServiceProxy zaloPayServiceProxy;
     private final TransactionMoneyRepository transactionMoneyRepository;
+    private final AzureStorageService azureStorageService;
 
     @Value("${tech.vtsign.zalopay.app-id}")
     private int appId;
@@ -252,6 +256,22 @@ public class UserServiceImpl implements UserService {
         return transactionMoneyPage;
     }
 
+
+    @Override
+    public User updateAvatar(UUID id, MultipartFile file) {
+        Optional<User> opt = userRepository.findById(id);
+        User user = opt.orElseThrow(() -> new NotFoundException("User not found"));
+        String fileName = file.getOriginalFilename();
+        try {
+            String avatar = azureStorageService.uploadOverride(String.format("%s/%s", user.getId(), fileName),
+                    file.getBytes());
+            user.setAvatar(avatar);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new BadRequestException("Upload file error");
+        }
+        return userRepository.save(user);
+    }
 
     @Override
     public List<User> findAll() {

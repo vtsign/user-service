@@ -19,7 +19,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import tech.vtsign.userservice.domain.TransactionMoney;
+import org.springframework.web.multipart.MultipartFile;
 import tech.vtsign.userservice.domain.User;
+import tech.vtsign.userservice.exception.BadRequestException;
 import tech.vtsign.userservice.exception.ExceptionResponse;
 import tech.vtsign.userservice.exception.MissingFieldException;
 import tech.vtsign.userservice.model.UserChangePasswordDto;
@@ -30,6 +32,7 @@ import tech.vtsign.userservice.model.zalopay.ZaloPayResponse;
 import tech.vtsign.userservice.security.UserDetailsImpl;
 import tech.vtsign.userservice.service.UserService;
 
+import javax.servlet.ServletContext;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +45,7 @@ import java.util.stream.Collectors;
 public class UserController {
 
     private final UserService userService;
+    private final ServletContext context;
 
     @Operation(summary = "Check user exists by email")
     @ApiResponses(value = {
@@ -79,7 +83,6 @@ public class UserController {
     public ResponseEntity<?> getProfile(@Parameter(hidden = true) @AuthenticationPrincipal
                                                 UserDetailsImpl userDetails) {
         UserResponseDto user = userDetails.getUser();
-
         return ResponseEntity.ok(user);
     }
 
@@ -133,6 +136,36 @@ public class UserController {
         }
         UserResponseDto user = userDetails.getUser();
         User updatedUser = userService.changePassword(user.getId(), userChangePasswordDto);
+        BeanUtils.copyProperties(updatedUser, user);
+        return ResponseEntity.ok(user);
+    }
+
+    @Operation(summary = "User update password")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Change password successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.class))
+            ),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "File is not image or empty",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+    })
+    @PostMapping("update-avatar")
+    public ResponseEntity<?> updateAvatar(@Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
+                                          @RequestPart("avatar") MultipartFile file) {
+        UserResponseDto user = userDetails.getUser();
+        if (file.isEmpty()) {
+            throw new BadRequestException("Avatar is empty");
+        }
+        String mimeType = context.getMimeType(file.getOriginalFilename());
+        if (!mimeType.startsWith("image/")) {
+            throw new BadRequestException("File is not image");
+        }
+        User updatedUser = userService.updateAvatar(user.getId(), file);
         BeanUtils.copyProperties(updatedUser, user);
         return ResponseEntity.ok(user);
     }
