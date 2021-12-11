@@ -7,6 +7,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +31,10 @@ import tech.vtsign.userservice.utils.zalopay.crypto.HMACUtil;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import javax.xml.bind.DatatypeConverter;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -57,7 +65,7 @@ public class UserServiceImpl implements UserService {
     private static String callbackKey;
 
     @Value("${tech.vtsign.zalopay.init-balance}")
-    private long initBalance = 10000;
+    private final long initBalance = 10000;
 
     @Value("${tech.vtsign.zalopay.callback-key}")
     public void setCallbackKey(String key) {
@@ -226,6 +234,24 @@ public class UserServiceImpl implements UserService {
         }
         return true;
     }
+
+    @Override
+    public Page<TransactionMoney> findAllTransactions(User user, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<TransactionMoney> transactionMoneyPage = transactionMoneyRepository.findAll(new Specification<TransactionMoney>() {
+            final List<Predicate> predicates = new ArrayList<>();
+
+            @Override
+            public Predicate toPredicate(Root<TransactionMoney> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+                if (user != null) {
+                    predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("user"), user)));
+                }
+                return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
+            }
+        }, pageable);
+        return transactionMoneyPage;
+    }
+
 
     @Override
     public List<User> findAll() {
