@@ -1,5 +1,6 @@
 package tech.vtsign.userservice.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -25,7 +26,8 @@ public class TransactionMoney {
     private String method;
     private long amount;
     private String description;
-    @ManyToOne
+    @JsonIgnore
+    @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "user_uuid")
     private User user;
 }

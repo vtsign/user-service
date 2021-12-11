@@ -12,11 +12,13 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import tech.vtsign.userservice.domain.TransactionMoney;
 import org.springframework.web.multipart.MultipartFile;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.BadRequestException;
@@ -31,6 +33,9 @@ import tech.vtsign.userservice.security.UserDetailsImpl;
 import tech.vtsign.userservice.service.UserService;
 
 import javax.servlet.ServletContext;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
@@ -193,6 +198,22 @@ public class UserController {
         return ResponseEntity.ok(zaloPayResponse);
     }
 
+    @GetMapping("/transactions")
+    public ResponseEntity<?> findAllTransactions(@Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                 @RequestParam(value = "page", required = false, defaultValue = "1") int page,
+                                                 @RequestParam(value = "size", required = false, defaultValue = "4") int size) {
+        User user = new User();
+        user.setId(userDetails.getUser().getId());
+        Page<TransactionMoney> transactionMoneyPage = userService.findAllTransactions(user, page, size);
+
+        List<TransactionMoney> transactionMonies = transactionMoneyPage.getContent();
+        Map<String, Object> result = new HashMap<>();
+        result.put("total_items", transactionMoneyPage.getTotalElements());
+        result.put("transactionMonies", transactionMonies);
+        result.put("total_pages", transactionMoneyPage.getTotalPages());
+        result.put("current_page", page);
+        return ResponseEntity.ok(result);
+    }
 
 
 }
