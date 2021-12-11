@@ -18,6 +18,7 @@ import tech.vtsign.userservice.model.UserDepositDto;
 import tech.vtsign.userservice.model.UserUpdateDto;
 import tech.vtsign.userservice.model.zalopay.*;
 import tech.vtsign.userservice.proxy.ZaloPayServiceProxy;
+import tech.vtsign.userservice.repository.TransactionMoneyRepository;
 import tech.vtsign.userservice.repository.UserRepository;
 import tech.vtsign.userservice.service.UserProducer;
 import tech.vtsign.userservice.service.UserService;
@@ -41,6 +42,7 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final UserProducer userProducer;
     private final ZaloPayServiceProxy zaloPayServiceProxy;
+    private final TransactionMoneyRepository transactionMoneyRepository;
 
     @Value("${tech.vtsign.zalopay.app-id}")
     private int appId;
@@ -53,6 +55,9 @@ public class UserServiceImpl implements UserService {
     @Value("${tech.vtsign.zalopay.mac-key}")
     private String macKey;
     private static String callbackKey;
+
+    @Value("${tech.vtsign.zalopay.init-balance}")
+    private long initBalance = 10000;
 
     @Value("${tech.vtsign.zalopay.callback-key}")
     public void setCallbackKey(String key) {
@@ -178,9 +183,11 @@ public class UserServiceImpl implements UserService {
                     TransactionMoney transactionMoney = new TransactionMoney();
                     transactionMoney.setAmount(item.getAmount());
                     transactionMoney.setMethod(item.getMethod());
-                    transactionMoney.setStatus(TransactionConstant.DEPOSIT);
+                    transactionMoney.setStatus(TransactionConstant.DEPOSIT_STATUS);
                     transactionMoney.setDescription("deposit money for system");
                     transactionMoney.setUser(user);
+                    transactionMoneyRepository.save(transactionMoney);
+
                 }
                 response.setCode(1);
                 response.setMessage("success");
@@ -196,24 +203,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public Boolean updateUserBalance(UUID userId, long amount, String method) {
+    public Boolean updateUserBalance(UUID userId, long amount, String status) {
         User user = this.findUserById(userId);
 
         TransactionMoney transactionMoney = new TransactionMoney();
         transactionMoney.setAmount(amount);
-        transactionMoney.setMethod(method);
+        transactionMoney.setStatus(status);
         transactionMoney.setUser(user);
-        if (method.equals(TransactionConstant.DEPOSIT)) {
-            transactionMoney.setStatus(TransactionConstant.DEPOSIT);
+        if (status.equals(TransactionConstant.DEPOSIT_STATUS)) {
             transactionMoney.setDescription("deposit money for system");
             user.setBalance(user.getBalance() + amount);
         }
-        if (method.equals(TransactionConstant.PAYMENT)) {
+        if (status.equals(TransactionConstant.PAYMENT_STATUS)) {
             if (user.getBalance() < amount) {
                 return false;
             }
-            transactionMoney.setStatus(TransactionConstant.PAYMENT);
             transactionMoney.setDescription("pay money for system");
+            transactionMoney.setUser(user);
+            user.getTransactionMonies().add(transactionMoney);
             user.setBalance(user.getBalance() - amount);
 
         }
@@ -288,6 +295,13 @@ public class UserServiceImpl implements UserService {
         if (user.isEnabled()) {
             return false;
         }
+
+        TransactionMoney transactionMoney = new TransactionMoney();
+        transactionMoney.setAmount(initBalance);
+        transactionMoney.setStatus(TransactionConstant.INIT_BALANCE);
+        transactionMoney.setUser(user);
+        transactionMoneyRepository.save(transactionMoney);
+        user.setBalance(initBalance);
         user.setEnabled(true);
         return true;
     }

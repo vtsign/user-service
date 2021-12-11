@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +26,7 @@ import tech.vtsign.userservice.exception.MissingFieldException;
 import tech.vtsign.userservice.model.UserLoginDto;
 import tech.vtsign.userservice.model.UserRequestDto;
 import tech.vtsign.userservice.model.UserResponseDto;
+import tech.vtsign.userservice.model.zalopay.Item;
 import tech.vtsign.userservice.model.zalopay.ZaloPayCallbackRequest;
 import tech.vtsign.userservice.service.UserService;
 
@@ -41,6 +43,9 @@ import java.util.stream.Collectors;
 public class AcceptController {
 
     private final UserService userService;
+
+
+
 
     @Hidden
     @Operation(summary = "Get user by email [service call only]")
@@ -200,6 +205,11 @@ public class AcceptController {
         log.info("orderCallback: {}", zaloPayCallbackRequest);
         String json = userService.updateUserBalance(zaloPayCallbackRequest);
         return ResponseEntity.ok(json);
+    }
+    @PostMapping("/payment")
+    public ResponseEntity<Boolean> paymentForSendDocument(@RequestBody Item item){
+        Boolean result =  userService.updateUserBalance(item.getUserId(), item.getAmount(),item.getStatus());
+        return ResponseEntity.ok(result);
     }
 
 }

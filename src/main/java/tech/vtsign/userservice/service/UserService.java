@@ -40,5 +40,5 @@ public interface UserService {
 
     String updateUserBalance(ZaloPayCallbackRequest zaloPayCallbackRequest) throws JsonProcessingException;
 
-    Boolean updateUserBalance(UUID userId, long amount, String method);
+    Boolean updateUserBalance(UUID userId, long amount, String status);
 }

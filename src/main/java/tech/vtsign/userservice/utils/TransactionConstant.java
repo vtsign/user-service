@@ -1,7 +1,8 @@
 package tech.vtsign.userservice.utils;
 
 public class TransactionConstant {
-    public static String DEPOSIT = "deposit";
-    public static String REFUND = "refund";
-    public static String PAYMENT = "payment";
+    public static String DEPOSIT_STATUS = "deposit";
+    public static String REFUND_STATUS = "refund";
+    public static String PAYMENT_STATUS = "payment";
+    public static String INIT_BALANCE = "init_balance";
 }

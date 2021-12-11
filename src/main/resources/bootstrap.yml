@@ -19,3 +19,6 @@ tech:
     kafka:
       user-service:
         register: 'user-service-register'
+
+    zalopay:
+      init-balance: 10000
