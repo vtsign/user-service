@@ -209,7 +209,7 @@ public class UserController {
         List<TransactionMoney> transactionMonies = transactionMoneyPage.getContent();
         Map<String, Object> result = new HashMap<>();
         result.put("total_items", transactionMoneyPage.getTotalElements());
-        result.put("transactionMonies", transactionMonies);
+        result.put("transaction_monies", transactionMonies);
         result.put("total_pages", transactionMoneyPage.getTotalPages());
         result.put("current_page", page);
         return ResponseEntity.ok(result);
