@@ -70,6 +70,8 @@ public class UserServiceImpl implements UserService {
     private static String callbackKey;
     @Value("${tech.vtsign.hostname}")
     private String hostname;
+    @Value("${tech.vtsign.zalopay.amount}")
+    private final long amount = 5000;
 
     @Value("${tech.vtsign.zalopay.init-balance}")
     private final long initBalance = 10000;
@@ -273,6 +275,13 @@ public class UserServiceImpl implements UserService {
             throw new BadRequestException("Upload file error");
         }
         return userRepository.save(user);
+    }
+
+    @Override
+    public Long maxReceivers(UUID id) {
+        Optional<User> opt = userRepository.findById(id);
+        User user = opt.orElseThrow(() -> new NotFoundException("User not found"));
+        return user.getBalance() / amount;
     }
 
     @Override

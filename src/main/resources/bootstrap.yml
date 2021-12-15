@@ -22,3 +22,4 @@ tech:
 
     zalopay:
       init-balance: 10000
+      amount: 5000

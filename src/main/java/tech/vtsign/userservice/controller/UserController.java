@@ -18,8 +18,8 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import tech.vtsign.userservice.domain.TransactionMoney;
 import org.springframework.web.multipart.MultipartFile;
+import tech.vtsign.userservice.domain.TransactionMoney;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.BadRequestException;
 import tech.vtsign.userservice.exception.ExceptionResponse;
@@ -215,5 +215,20 @@ public class UserController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(summary = "Get maximum receivers to sign contract")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = Long.class))
+            ),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+    })
+    @GetMapping("/max-receivers")
+    public ResponseEntity<?> maxReceivers(@Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        Long maxReceivers = userService.maxReceivers(userDetails.getUser().getId());
+        return ResponseEntity.ok(maxReceivers);
+    }
 
 }
