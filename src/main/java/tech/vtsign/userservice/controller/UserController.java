@@ -204,7 +204,7 @@ public class UserController {
                                                  @RequestParam(value = "size", required = false, defaultValue = "4") int size) {
         User user = new User();
         user.setId(userDetails.getUser().getId());
-        Page<TransactionMoney> transactionMoneyPage = userService.findAllTransactions(user, page, size);
+        Page<TransactionMoney> transactionMoneyPage = userService.findAllTransactions(user, page-1, size);
 
         List<TransactionMoney> transactionMonies = transactionMoneyPage.getContent();
         Map<String, Object> result = new HashMap<>();
