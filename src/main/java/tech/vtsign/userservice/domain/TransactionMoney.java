@@ -1,10 +1,7 @@
 package tech.vtsign.userservice.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -28,6 +25,7 @@ public class TransactionMoney extends Auditable<String> implements Serializable 
     private long amount;
     private String description;
     @JsonIgnore
+    @ToString.Exclude
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinColumn(name = "user_uuid")
     private User user;

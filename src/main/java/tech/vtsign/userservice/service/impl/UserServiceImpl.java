@@ -110,7 +110,6 @@ public class UserServiceImpl implements UserService {
         Optional<User> opt = userRepository.findById(id);
         User user = opt.orElseThrow(() -> new NotFoundException("User not found"));
         BeanUtils.copyProperties(userUpdateDto, user);
-        log.error(user.toString());
         return userRepository.save(user);
     }
 
