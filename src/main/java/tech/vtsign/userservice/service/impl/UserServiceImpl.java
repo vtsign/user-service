@@ -23,6 +23,7 @@ import tech.vtsign.userservice.model.UserChangePasswordDto;
 import tech.vtsign.userservice.model.UserDepositDto;
 import tech.vtsign.userservice.model.UserUpdateDto;
 import tech.vtsign.userservice.model.zalopay.*;
+import tech.vtsign.userservice.proxy.DocumentServiceProxy;
 import tech.vtsign.userservice.proxy.ZaloPayServiceProxy;
 import tech.vtsign.userservice.repository.TransactionMoneyRepository;
 import tech.vtsign.userservice.repository.UserRepository;
@@ -54,6 +55,7 @@ public class UserServiceImpl implements UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final UserProducer userProducer;
     private final ZaloPayServiceProxy zaloPayServiceProxy;
+    private final DocumentServiceProxy documentServiceProxy;
     private final TransactionMoneyRepository transactionMoneyRepository;
     private final AzureStorageService azureStorageService;
 
@@ -112,7 +114,9 @@ public class UserServiceImpl implements UserService {
         Optional<User> opt = userRepository.findById(id);
         User user = opt.orElseThrow(() -> new NotFoundException("User not found"));
         BeanUtils.copyProperties(userUpdateDto, user);
-        return userRepository.save(user);
+        User userSave = userRepository.save(user);
+        documentServiceProxy.updateUser(userSave);
+        return userSave;
     }
 
     @Override
@@ -306,6 +310,8 @@ public class UserServiceImpl implements UserService {
         Activation activation = new Activation();
         activation.setTo(user.getEmail());
         activation.setUrl(String.format("%s/activation/%s", hostname, user.getId()));
+        log.error(activation.toString());
+        log.info("url Activation", activation.getUrl());
         userProducer.sendMessage(activation);
         return (S) userSave;
     }
@@ -384,6 +390,7 @@ public class UserServiceImpl implements UserService {
         transactionMoneyRepository.save(transactionMoney);
         user.setBalance(initBalance);
         user.setEnabled(true);
+        documentServiceProxy.saveUser(user);
         return true;
     }
 
