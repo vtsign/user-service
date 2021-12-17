@@ -9,6 +9,6 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserManagementList extends PageInfo {
-    private List<UserResponseDto> users;
+public class DTOList<T> extends PageInfo {
+    private List<T> list;
 }

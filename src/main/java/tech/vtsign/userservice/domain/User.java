@@ -1,5 +1,6 @@
 package tech.vtsign.userservice.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -55,6 +56,7 @@ public class User extends Auditable<String> implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "permission_uuid"))
     private List<Permission> permissions;
 
+    @JsonIgnore
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "user")
     private List<TransactionMoney> transactionMonies;
 

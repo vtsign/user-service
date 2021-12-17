@@ -1,10 +1,7 @@
 package tech.vtsign.userservice.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
@@ -33,5 +30,6 @@ public class Role {
 
     @JsonIgnore
     @ManyToMany(mappedBy = "roles")
+    @ToString.Exclude
     private List<User> users;
 }

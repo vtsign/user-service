@@ -115,24 +115,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User updateUser(UUID id, UserUpdateDto userUpdateDto) {
-        Optional<User> opt = userRepository.findById(id);
-        User user = opt.orElseThrow(() -> new NotFoundException("User not found"));
+        User user = findUserById(id);
         BeanUtils.copyProperties(userUpdateDto, user);
-
         if (userUpdateDto.getRole() != null) {
             Role roleUser = roleService.findByName(userUpdateDto.getRole());
-            user.setRoles(Collections.singletonList(roleUser));
+            List<Role> roles = new ArrayList<>();
+            roles.add(roleUser);
+            user.setRoles(roles);
         }
-
         User userSave = userRepository.save(user);
-        documentServiceProxy.updateUser(userSave);
+        if (userUpdateDto.getRole() == null) {
+            documentServiceProxy.updateUser(userSave);
+        }
         return userSave;
     }
 
     @Override
     public User changePassword(UUID id, UserChangePasswordDto userChangePasswordDto) {
-        Optional<User> opt = userRepository.findById(id);
-        User user = opt.orElseThrow(() -> new NotFoundException("User not found"));
+        User user = findUserById(id);
         if (!bCryptPasswordEncoder.matches(userChangePasswordDto.getOldPassword(), user.getPassword())) {
             throw new UnauthorizedException("Invalid old password");
         }
@@ -214,7 +214,7 @@ public class UserServiceImpl implements UserService {
                     transactionMoney.setAmount(item.getAmount());
                     transactionMoney.setMethod(item.getMethod());
                     transactionMoney.setStatus(TransactionConstant.DEPOSIT_STATUS);
-                    transactionMoney.setDescription("deposit money for system");
+                    transactionMoney.setDescription(TransactionConstant.DEPOSIT_DESCRIPTION);
                     transactionMoney.setUser(user);
                     transactionMoneyRepository.save(transactionMoney);
 
@@ -240,15 +240,12 @@ public class UserServiceImpl implements UserService {
         transactionMoney.setAmount(amount);
         transactionMoney.setStatus(status);
         transactionMoney.setUser(user);
-        if (status.equals(TransactionConstant.DEPOSIT_STATUS)) {
-            transactionMoney.setDescription("deposit money for system");
-            user.setBalance(user.getBalance() + amount);
-        }
         if (status.equals(TransactionConstant.PAYMENT_STATUS)) {
             if (user.getBalance() < amount) {
                 return false;
             }
-            transactionMoney.setDescription("pay money for system");
+            transactionMoney.setMethod(TransactionConstant.PAYMENT);
+            transactionMoney.setDescription(TransactionConstant.PAYMENT_DESCRIPTION);
             transactionMoney.setUser(user);
             user.getTransactionMonies().add(transactionMoney);
             user.setBalance(user.getBalance() - amount);
@@ -258,27 +255,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Page<TransactionMoney> findAllTransactions(User user, int page, int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<TransactionMoney> transactionMoneyPage = transactionMoneyRepository.findAll(new Specification<TransactionMoney>() {
-            final List<Predicate> predicates = new ArrayList<>();
-
-            @Override
-            public Predicate toPredicate(Root<TransactionMoney> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
-                if (user != null) {
-                    predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("user"), user)));
-                }
-                return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
-            }
-        }, pageable);
-        return transactionMoneyPage;
-    }
-
-
-    @Override
     public User updateAvatar(UUID id, MultipartFile file) {
-        Optional<User> opt = userRepository.findById(id);
-        User user = opt.orElseThrow(() -> new NotFoundException("User not found"));
+        User user = findUserById(id);
         String fileName = file.getOriginalFilename();
         try {
             String avatar = azureStorageService.uploadOverride(String.format("%s/%s", user.getId(), fileName),
@@ -319,8 +297,6 @@ public class UserServiceImpl implements UserService {
         Activation activation = new Activation();
         activation.setTo(user.getEmail());
         activation.setUrl(String.format("%s/activation/%s", hostname, user.getId()));
-        log.error(activation.toString());
-        log.info("url Activation", activation.getUrl());
         userProducer.sendMessage(activation);
         return (S) userSave;
     }
@@ -402,7 +378,9 @@ public class UserServiceImpl implements UserService {
 
         TransactionMoney transactionMoney = new TransactionMoney();
         transactionMoney.setAmount(initBalance);
+        transactionMoney.setMethod(TransactionConstant.INIT);
         transactionMoney.setStatus(TransactionConstant.INIT_BALANCE);
+        transactionMoney.setDescription(TransactionConstant.INIT_DESCRIPTION);
         transactionMoney.setUser(user);
         transactionMoneyRepository.save(transactionMoney);
         user.setBalance(initBalance);
@@ -461,8 +439,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     public boolean updateRoleUser(UUID userId, String nameRole) {
-        Optional<User> userOpt = userRepository.findById(userId);
-        User user = userOpt.orElseThrow(() -> new NotFoundException("User not found!"));
+        User user = findUserById(userId);
         Optional<Role> roleOpt = roleRepository.findByName(nameRole);
         Role role = roleOpt.orElseThrow(() -> new NotFoundException("Role not found"));
         user.setRoles(List.of(role));
@@ -470,7 +447,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserManagementList getUserManagementList(int page, int pageSize, String sortField, String sortType, String keyword) {
+    public DTOList<?> getUserManagementList(int page, int pageSize, String sortField, String sortType, String keyword) {
         Sort sort = Sort.by(sortField).ascending();
         if (sortType.equals("desc")) {
             sort = Sort.by(sortField).descending();
@@ -484,28 +461,51 @@ public class UserServiceImpl implements UserService {
             userPage = userRepository.findAll(pageable);
         }
 
-        UserManagementList userManagementList = new UserManagementList();
-        userManagementList.setPage(page);
-        userManagementList.setPageSize(userPage.getSize());
-        userManagementList.setTotalElements(userPage.getTotalElements());
-        userManagementList.setTotalPages(userPage.getTotalPages());
-        userManagementList.setUsers(convertToUserResponseDtoList(userPage.getContent()));
-        return userManagementList;
+        DTOList<UserResponseDto> DTOList = new DTOList<>();
+        DTOList.setPage(page);
+        DTOList.setPageSize(userPage.getSize());
+        DTOList.setTotalElements(userPage.getTotalElements());
+        DTOList.setTotalPages(userPage.getTotalPages());
+        DTOList.setList(convertToDto(userPage.getContent(), UserResponseDto.class));
+        return DTOList;
     }
 
-    private List<UserResponseDto> convertToUserResponseDtoList(List<User> users) {
-        List<UserResponseDto> userResponseDtoList = new ArrayList<>();
-        for (User user : users) {
-            UserResponseDto userResponseDto = new UserResponseDto();
-            BeanUtils.copyProperties(user, userResponseDto);
-            userResponseDtoList.add(userResponseDto);
+    private <T, V> List<T> convertToDto(List<V> source, Class<T> clazz) {
+        List<T> des = new ArrayList<>();
+        for (V v : source) {
+            T t = (T) BeanUtils.instantiateClass(clazz);
+            BeanUtils.copyProperties(v, t);
+            des.add(t);
         }
-        return userResponseDtoList;
+        return des;
     }
 
     @Override
     public Long getTotalMoney(String status, LocalDateTime fromDate, LocalDateTime toDate) {
         return transactionMoneyRepository.getSumAmountByStatus(status, fromDate, toDate);
+    }
+
+    @Override
+    public DTOList<?> getTransactionManagementList(User user, int page, int pageSize) {
+        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        Page<TransactionMoney> transactionMoneyPage = transactionMoneyRepository.findAll(new Specification<>() {
+            final List<Predicate> predicates = new ArrayList<>();
+
+            @Override
+            public Predicate toPredicate(Root<TransactionMoney> root, CriteriaQuery<?> criteriaQuery, CriteriaBuilder criteriaBuilder) {
+                if (user != null) {
+                    predicates.add(criteriaBuilder.and(criteriaBuilder.equal(root.get("user"), user)));
+                }
+                return criteriaBuilder.and(predicates.toArray(new Predicate[predicates.size()]));
+            }
+        }, pageable);
+        DTOList<TransactionMoneyDto> DTOList = new DTOList<>();
+        DTOList.setPage(page);
+        DTOList.setPageSize(transactionMoneyPage.getSize());
+        DTOList.setTotalElements(transactionMoneyPage.getTotalElements());
+        DTOList.setTotalPages(transactionMoneyPage.getTotalPages());
+        DTOList.setList(convertToDto(transactionMoneyPage.getContent(), TransactionMoneyDto.class));
+        return DTOList;
     }
 
 }

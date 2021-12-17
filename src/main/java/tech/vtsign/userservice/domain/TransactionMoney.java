@@ -27,7 +27,7 @@ public class TransactionMoney extends Auditable<String> implements Serializable 
     private long amount;
     private String description;
     @JsonProperty("created_date")
-    private LocalDateTime createdDate;
+    private LocalDateTime createdDate = LocalDateTime.now();
     @JsonIgnore
     @ToString.Exclude
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})

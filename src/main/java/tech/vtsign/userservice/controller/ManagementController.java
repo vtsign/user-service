@@ -34,15 +34,14 @@ public class ManagementController {
     private final RoleService roleService;
 
     @GetMapping("/list")
-    public UserManagementList getManagement(
+    public DTOList<?> getManagement(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "pageSize", defaultValue = "5") int pageSize,
             @RequestParam(name = "sortField", required = false, defaultValue = "firstName") String sortField,
             @RequestParam(name = "sortType", required = false, defaultValue = "asc") String sortType,
             @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword
     ) {
-        UserManagementList userManagementList = userService.getUserManagementList(page, pageSize, sortField, sortType, keyword);
-        return userManagementList;
+        return userService.getUserManagementList(page, pageSize, sortField, sortType, keyword);
     }
 
     @GetMapping("/roles")
