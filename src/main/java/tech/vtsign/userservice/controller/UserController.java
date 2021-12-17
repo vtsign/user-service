@@ -102,6 +102,7 @@ public class UserController {
                                                    UserDetailsImpl userDetails,
                                            @RequestBody UserUpdateDto userUpdateDto) {
         UserResponseDto user = userDetails.getUser();
+        userUpdateDto.setRole(null);
         User updatedUser = userService.updateUser(user.getId(), userUpdateDto);
         BeanUtils.copyProperties(updatedUser, user);
         return ResponseEntity.ok(user);

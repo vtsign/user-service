@@ -9,17 +9,14 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import tech.vtsign.userservice.constant.TransactionConstant;
 import tech.vtsign.userservice.domain.Role;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.MissingFieldException;
-import tech.vtsign.userservice.model.UserManagementList;
-import tech.vtsign.userservice.model.UserRequestDto;
-import tech.vtsign.userservice.model.UserResponseDto;
-import tech.vtsign.userservice.model.UserUpdateDto;
+import tech.vtsign.userservice.model.*;
 import tech.vtsign.userservice.service.RoleService;
 import tech.vtsign.userservice.service.UserService;
 import tech.vtsign.userservice.utils.DateUtil;
-import tech.vtsign.userservice.utils.TransactionConstant;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
@@ -55,16 +52,17 @@ public class ManagementController {
     }
 
     @PutMapping("/block-user")
-    public ResponseEntity<Boolean> blockUser(@RequestParam("id") UUID userUUID) {
-        return ResponseEntity.ok(userService.blockUser(userUUID));
+    public ResponseEntity<Boolean> blockUser(@RequestBody UserStatusDto userStatusDto) {
+        return ResponseEntity.ok(userService.blockUser(userStatusDto.getUserId(), userStatusDto.isStatus()));
     }
 
     @DeleteMapping("/delete-user")
-    public ResponseEntity<Boolean> deleteUser(@RequestParam("id") UUID userUUID) {
-        return ResponseEntity.ok(userService.deleteUser(userUUID));
+    public ResponseEntity<Boolean> deleteUser(@RequestBody UserStatusDto userStatusDto) {
+        return ResponseEntity.ok(userService.deleteUser(userStatusDto.getUserId(), userStatusDto.isStatus()));
     }
 
-    @PostMapping("/user/create")
+
+    @PostMapping("/create-user")
     public ResponseEntity<UserResponseDto> createUser(@Validated @RequestBody UserRequestDto userRequestDto, BindingResult result) {
         if (result.hasErrors()) {
             String errorMessage = result.getAllErrors()
@@ -84,17 +82,18 @@ public class ManagementController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
     }
 
-    @PostMapping("/user/{id}/update")
+    @PostMapping("/update-user/{id}")
     public ResponseEntity<?> updateUser(@PathVariable(name = "id") UUID userId,
                                         @RequestBody UserUpdateDto userUpdateDto) {
         User updatedUser = userService.updateUser(userId, userUpdateDto);
-//        BeanUtils.copyProperties(updatedUser, us);
-        return ResponseEntity.ok("ok");
+        return ResponseEntity.ok(updatedUser);
     }
 
     @GetMapping("/total-deposit")
-    public ResponseEntity<?> getTotalDeposit() {
-        return ResponseEntity.ok(userService.getTotalMoney(TransactionConstant.DEPOSIT_STATUS));
+    public ResponseEntity<?> getTotalDeposit(@RequestParam(value = "type", defaultValue = "date") String type) {
+        List<LocalDateTime> dates = DateUtil.getDateBetween(type);
+        Long totalMoney = userService.getTotalMoney(TransactionConstant.DEPOSIT_STATUS, dates.get(0), dates.get(1));
+        return ResponseEntity.ok(totalMoney != null ? totalMoney : 0);
     }
 
     @GetMapping("/count-user")

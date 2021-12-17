@@ -1,11 +1,13 @@
 package tech.vtsign.userservice.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.*;
 import org.hibernate.annotations.GenericGenerator;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -24,6 +26,8 @@ public class TransactionMoney extends Auditable<String> implements Serializable 
     private String method;
     private long amount;
     private String description;
+    @JsonProperty("created_date")
+    private LocalDateTime createdDate;
     @JsonIgnore
     @ToString.Exclude
     @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST})

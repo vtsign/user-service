@@ -16,6 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import tech.vtsign.userservice.constant.TransactionConstant;
 import tech.vtsign.userservice.domain.Role;
 import tech.vtsign.userservice.domain.TransactionMoney;
 import tech.vtsign.userservice.domain.User;
@@ -28,9 +29,9 @@ import tech.vtsign.userservice.repository.RoleRepository;
 import tech.vtsign.userservice.repository.TransactionMoneyRepository;
 import tech.vtsign.userservice.repository.UserRepository;
 import tech.vtsign.userservice.service.AzureStorageService;
+import tech.vtsign.userservice.service.RoleService;
 import tech.vtsign.userservice.service.UserProducer;
 import tech.vtsign.userservice.service.UserService;
-import tech.vtsign.userservice.utils.TransactionConstant;
 import tech.vtsign.userservice.utils.zalopay.crypto.HMACUtil;
 
 import javax.crypto.Mac;
@@ -54,6 +55,7 @@ import static tech.vtsign.userservice.utils.DateUtil.getCurrentTimeString;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final RoleService roleService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final UserProducer userProducer;
     private final ZaloPayServiceProxy zaloPayServiceProxy;
@@ -118,8 +120,7 @@ public class UserServiceImpl implements UserService {
         BeanUtils.copyProperties(userUpdateDto, user);
 
         if (userUpdateDto.getRole() != null) {
-            Optional<Role> roleOpt = roleRepository.findByName(userUpdateDto.getRole());
-            Role roleUser = roleOpt.orElseThrow(() -> new NotFoundException("Role not found!"));
+            Role roleUser = roleService.findByName(userUpdateDto.getRole());
             user.setRoles(Collections.singletonList(roleUser));
         }
 
@@ -366,6 +367,14 @@ public class UserServiceImpl implements UserService {
                 throw new LockedException("User haven't enabled yet");
             }
 
+            if (user.isBlocked()) {
+                throw new LockedException("User is blocked. Please contact admin");
+            }
+
+            if (user.isDeleted()) {
+                throw new LockedException("User is deleted. Please contact admin");
+            }
+
             return Optional.of(user);
         }
         throw new UnauthorizedException("Invalid Email or Password");
@@ -429,21 +438,17 @@ public class UserServiceImpl implements UserService {
 
     @Transactional
     @Override
-    public boolean blockUser(UUID userUUID) {
+    public boolean blockUser(UUID userUUID, boolean isBlock) {
         User user = findById(userUUID);
-        if (user.isBlocked())
-            throw new BadRequestException("User has been blocked");
-        user.setBlocked(true);
+        user.setBlocked(isBlock);
         return true;
     }
 
     @Transactional
     @Override
-    public boolean deleteUser(UUID userUUID) {
+    public boolean deleteUser(UUID userUUID, boolean isDelete) {
         User user = findById(userUUID);
-        if (user.isDeleted())
-            throw new BadRequestException("User has been deleted");
-        user.setDeleted(true);
+        user.setDeleted(isDelete);
         return true;
     }
 
@@ -499,8 +504,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Long getTotalMoney(String status) {
-        return transactionMoneyRepository.getSumAmountByStatus(status);
+    public Long getTotalMoney(String status, LocalDateTime fromDate, LocalDateTime toDate) {
+        return transactionMoneyRepository.getSumAmountByStatus(status, fromDate, toDate);
     }
 
 }

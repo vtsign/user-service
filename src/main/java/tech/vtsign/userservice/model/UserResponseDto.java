@@ -27,6 +27,7 @@ public class UserResponseDto {
     private String avatar;
     private boolean enabled;
     private boolean blocked;
+    private boolean deleted;
     private List<Role> roles;
     private List<Permission> permissions;
 }

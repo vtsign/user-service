@@ -42,7 +42,6 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         // Set unauthorized requests exception handler
 
-
         // Set permissions on endpoints
         http.authorizeRequests()
                 .antMatchers("/v3/api-docs/**", "/apt/**").permitAll()

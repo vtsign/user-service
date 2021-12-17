@@ -25,6 +25,12 @@ public class Role {
 
     private String name;
     private String description;
+
+    public Role(String name) {
+        this.name = name;
+        this.description = name;
+    }
+
     @JsonIgnore
     @ManyToMany(mappedBy = "roles")
     private List<User> users;

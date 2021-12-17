@@ -55,9 +55,9 @@ public interface UserService {
 
     Long maxReceivers(UUID id);
 
-    boolean blockUser(UUID userUUID);
+    boolean blockUser(UUID userUUID, boolean isBlock);
 
-    boolean deleteUser(UUID userUUID);
+    boolean deleteUser(UUID userUUID, boolean isDelete);
 
     long countUserBetweenDate(LocalDateTime startDate, LocalDateTime endDate);
 
@@ -65,5 +65,5 @@ public interface UserService {
 
     UserManagementList getUserManagementList(int page, int pageSize, String sortField, String sortType, String keyword);
 
-    Long getTotalMoney(String status);
+    Long getTotalMoney(String status, LocalDateTime fromDate, LocalDateTime toDate);
 }

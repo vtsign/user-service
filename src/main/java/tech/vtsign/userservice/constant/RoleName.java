@@ -1,4 +1,4 @@
-package tech.vtsign.userservice.model;
+package tech.vtsign.userservice.constant;
 
 public class RoleName {
     public static final String ROLE_USER = "USER";
