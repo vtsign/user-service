@@ -1,0 +1,107 @@
+package tech.vtsign.userservice.controller;
+
+import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
+import tech.vtsign.userservice.domain.Role;
+import tech.vtsign.userservice.domain.User;
+import tech.vtsign.userservice.exception.MissingFieldException;
+import tech.vtsign.userservice.model.UserManagementList;
+import tech.vtsign.userservice.model.UserRequestDto;
+import tech.vtsign.userservice.model.UserResponseDto;
+import tech.vtsign.userservice.model.UserUpdateDto;
+import tech.vtsign.userservice.service.RoleService;
+import tech.vtsign.userservice.service.UserService;
+import tech.vtsign.userservice.utils.DateUtil;
+import tech.vtsign.userservice.utils.TransactionConstant;
+
+import java.time.LocalDateTime;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@RestController
+@RequestMapping("/management")
+@PreAuthorize("hasRole('ADMIN')")
+@RequiredArgsConstructor
+public class ManagementController {
+
+    private final UserService userService;
+    private final RoleService roleService;
+
+    @GetMapping("/list")
+    public UserManagementList getManagement(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "pageSize", defaultValue = "5") int pageSize,
+            @RequestParam(name = "sortField", required = false, defaultValue = "firstName") String sortField,
+            @RequestParam(name = "sortType", required = false, defaultValue = "asc") String sortType,
+            @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword
+    ) {
+        UserManagementList userManagementList = userService.getUserManagementList(page, pageSize, sortField, sortType, keyword);
+        return userManagementList;
+    }
+
+    @GetMapping("/roles")
+    public ResponseEntity<?> retrieveAllRoles() {
+        List<Role> roles = roleService.findAll();
+        return ResponseEntity.ok(roles);
+    }
+
+    @PutMapping("/block-user")
+    public ResponseEntity<Boolean> blockUser(@RequestParam("id") UUID userUUID) {
+        return ResponseEntity.ok(userService.blockUser(userUUID));
+    }
+
+    @DeleteMapping("/delete-user")
+    public ResponseEntity<Boolean> deleteUser(@RequestParam("id") UUID userUUID) {
+        return ResponseEntity.ok(userService.deleteUser(userUUID));
+    }
+
+    @PostMapping("/user/create")
+    public ResponseEntity<UserResponseDto> createUser(@Validated @RequestBody UserRequestDto userRequestDto, BindingResult result) {
+        if (result.hasErrors()) {
+            String errorMessage = result.getAllErrors()
+                    .stream().map(DefaultMessageSourceResolvable::getDefaultMessage)
+                    .collect(Collectors.joining(";"));
+
+            throw new MissingFieldException(errorMessage);
+        }
+        User user = new User();
+        Role roleUser = roleService.findByName(userRequestDto.getRole());
+        user.setRoles(Collections.singletonList(roleUser));
+        BeanUtils.copyProperties(userRequestDto, user);
+        userService.save(user);
+        UserResponseDto responseDto = new UserResponseDto();
+        BeanUtils.copyProperties(user, responseDto);
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(responseDto);
+    }
+
+    @PostMapping("/user/{id}/update")
+    public ResponseEntity<?> updateUser(@PathVariable(name = "id") UUID userId,
+                                        @RequestBody UserUpdateDto userUpdateDto) {
+        User updatedUser = userService.updateUser(userId, userUpdateDto);
+//        BeanUtils.copyProperties(updatedUser, us);
+        return ResponseEntity.ok("ok");
+    }
+
+    @GetMapping("/total-deposit")
+    public ResponseEntity<?> getTotalDeposit() {
+        return ResponseEntity.ok(userService.getTotalMoney(TransactionConstant.DEPOSIT_STATUS));
+    }
+
+    @GetMapping("/count-user")
+    public ResponseEntity<?> countByDate(@RequestParam(value = "type", defaultValue = "date") String type) {
+        List<LocalDateTime> dates = DateUtil.getDateBetween(type);
+        long count = userService.countUserBetweenDate(dates.get(0), dates.get(1));
+        return ResponseEntity.ok(count);
+    }
+
+}

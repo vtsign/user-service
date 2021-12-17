@@ -32,4 +32,10 @@ public class RoleServiceImpl implements RoleService {
     public void delete(Role role) {
         repository.delete(role);
     }
+
+    @Override
+    public Role findByName(String name) {
+        return repository.findByName(name)
+                .orElseThrow(() -> new RuntimeException("Role not found"));
+    }
 }

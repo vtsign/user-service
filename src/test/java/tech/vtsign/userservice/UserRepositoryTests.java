@@ -22,6 +22,7 @@ public class UserRepositoryTests {
     @Autowired
     private UserRepository repo;
 
+
     @Test
     public void createUser() {
         BCryptPasswordEncoder bCryptPasswordEncoder = new BCryptPasswordEncoder();

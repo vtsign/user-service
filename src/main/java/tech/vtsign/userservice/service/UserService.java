@@ -7,11 +7,13 @@ import tech.vtsign.userservice.domain.TransactionMoney;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.model.UserChangePasswordDto;
 import tech.vtsign.userservice.model.UserDepositDto;
+import tech.vtsign.userservice.model.UserManagementList;
 import tech.vtsign.userservice.model.UserUpdateDto;
 import tech.vtsign.userservice.model.zalopay.ZaloPayCallbackRequest;
 import tech.vtsign.userservice.model.zalopay.ZaloPayResponse;
 
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -52,4 +54,16 @@ public interface UserService {
     User updateAvatar(UUID id, MultipartFile file);
 
     Long maxReceivers(UUID id);
+
+    boolean blockUser(UUID userUUID);
+
+    boolean deleteUser(UUID userUUID);
+
+    long countUserBetweenDate(LocalDateTime startDate, LocalDateTime endDate);
+
+    boolean updateRoleUser(UUID userId, String Role);
+
+    UserManagementList getUserManagementList(int page, int pageSize, String sortField, String sortType, String keyword);
+
+    Long getTotalMoney(String status);
 }

@@ -30,4 +30,5 @@ public class UserRequestDto {
     private String phone;
     private String organization;
     private String address;
+    private String role;
 }

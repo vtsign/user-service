@@ -19,17 +19,21 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import tech.vtsign.userservice.domain.Role;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.ExceptionResponse;
 import tech.vtsign.userservice.exception.MissingFieldException;
+import tech.vtsign.userservice.model.RoleName;
 import tech.vtsign.userservice.model.UserLoginDto;
 import tech.vtsign.userservice.model.UserRequestDto;
 import tech.vtsign.userservice.model.UserResponseDto;
 import tech.vtsign.userservice.model.zalopay.Item;
 import tech.vtsign.userservice.model.zalopay.ZaloPayCallbackRequest;
+import tech.vtsign.userservice.service.RoleService;
 import tech.vtsign.userservice.service.UserService;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -42,9 +46,7 @@ import java.util.stream.Collectors;
 public class AcceptController {
 
     private final UserService userService;
-
-
-
+    private final RoleService roleService;
 
     @Hidden
     @Operation(summary = "Get user by email [service call only]")
@@ -92,7 +94,6 @@ public class AcceptController {
         return ResponseEntity.ok().body(userRes);
     }
 
-
     @Hidden
     @Operation(summary = "Register account [service call only]")
     @ApiResponses(value = {
@@ -119,6 +120,8 @@ public class AcceptController {
             throw new MissingFieldException(errorMessage);
         }
         User user = new User();
+        Role roleUser = roleService.findByName(RoleName.ROLE_USER);
+        user.setRoles(Collections.singletonList(roleUser));
         BeanUtils.copyProperties(userRequestDto, user);
         userService.save(user);
         UserResponseDto responseDto = new UserResponseDto();
@@ -240,9 +243,10 @@ public class AcceptController {
         String json = userService.updateUserBalance(zaloPayCallbackRequest);
         return ResponseEntity.ok(json);
     }
+
     @PostMapping("/payment")
-    public ResponseEntity<Boolean> paymentForSendDocument(@RequestBody Item item){
-        Boolean result =  userService.updateUserBalance(item.getUserId(), item.getAmount(),item.getStatus());
+    public ResponseEntity<Boolean> paymentForSendDocument(@RequestBody Item item) {
+        Boolean result = userService.updateUserBalance(item.getUserId(), item.getAmount(), item.getStatus());
         return ResponseEntity.ok(result);
     }
 

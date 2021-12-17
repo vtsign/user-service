@@ -10,21 +10,21 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import tech.vtsign.userservice.domain.Role;
 import tech.vtsign.userservice.domain.TransactionMoney;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.*;
-import tech.vtsign.userservice.model.Activation;
-import tech.vtsign.userservice.model.UserChangePasswordDto;
-import tech.vtsign.userservice.model.UserDepositDto;
-import tech.vtsign.userservice.model.UserUpdateDto;
+import tech.vtsign.userservice.model.*;
 import tech.vtsign.userservice.model.zalopay.*;
 import tech.vtsign.userservice.proxy.DocumentServiceProxy;
 import tech.vtsign.userservice.proxy.ZaloPayServiceProxy;
+import tech.vtsign.userservice.repository.RoleRepository;
 import tech.vtsign.userservice.repository.TransactionMoneyRepository;
 import tech.vtsign.userservice.repository.UserRepository;
 import tech.vtsign.userservice.service.AzureStorageService;
@@ -43,6 +43,7 @@ import javax.xml.bind.DatatypeConverter;
 import java.io.IOException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 import static tech.vtsign.userservice.utils.DateUtil.getCurrentTimeString;
@@ -52,6 +53,7 @@ import static tech.vtsign.userservice.utils.DateUtil.getCurrentTimeString;
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final UserProducer userProducer;
     private final ZaloPayServiceProxy zaloPayServiceProxy;
@@ -114,6 +116,13 @@ public class UserServiceImpl implements UserService {
         Optional<User> opt = userRepository.findById(id);
         User user = opt.orElseThrow(() -> new NotFoundException("User not found"));
         BeanUtils.copyProperties(userUpdateDto, user);
+
+        if (userUpdateDto.getRole() != null) {
+            Optional<Role> roleOpt = roleRepository.findByName(userUpdateDto.getRole());
+            Role roleUser = roleOpt.orElseThrow(() -> new NotFoundException("Role not found!"));
+            user.setRoles(Collections.singletonList(roleUser));
+        }
+
         User userSave = userRepository.save(user);
         documentServiceProxy.updateUser(userSave);
         return userSave;
@@ -304,7 +313,6 @@ public class UserServiceImpl implements UserService {
                 throw new ConflictException("Email is already in use");
             }
         }
-
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         User userSave = userRepository.save(user);
         Activation activation = new Activation();
@@ -419,5 +427,80 @@ public class UserServiceImpl implements UserService {
         return user;
     }
 
+    @Transactional
+    @Override
+    public boolean blockUser(UUID userUUID) {
+        User user = findById(userUUID);
+        if (user.isBlocked())
+            throw new BadRequestException("User has been blocked");
+        user.setBlocked(true);
+        return true;
+    }
+
+    @Transactional
+    @Override
+    public boolean deleteUser(UUID userUUID) {
+        User user = findById(userUUID);
+        if (user.isDeleted())
+            throw new BadRequestException("User has been deleted");
+        user.setDeleted(true);
+        return true;
+    }
+
+    @Override
+    public long countUserBetweenDate(LocalDateTime from, LocalDateTime to) {
+        return userRepository.countAllByCreatedDateBetween(from, to);
+    }
+
+
+    @Override
+    @Transactional
+    public boolean updateRoleUser(UUID userId, String nameRole) {
+        Optional<User> userOpt = userRepository.findById(userId);
+        User user = userOpt.orElseThrow(() -> new NotFoundException("User not found!"));
+        Optional<Role> roleOpt = roleRepository.findByName(nameRole);
+        Role role = roleOpt.orElseThrow(() -> new NotFoundException("Role not found"));
+        user.setRoles(List.of(role));
+        return true;
+    }
+
+    @Override
+    public UserManagementList getUserManagementList(int page, int pageSize, String sortField, String sortType, String keyword) {
+        Sort sort = Sort.by(sortField).ascending();
+        if (sortType.equals("desc")) {
+            sort = Sort.by(sortField).descending();
+        }
+        Pageable pageable = PageRequest.of(page - 1, pageSize, sort);
+
+        Page<User> userPage;
+        if (keyword != null && !keyword.isEmpty()) {
+            userPage = userRepository.findAll(keyword, pageable);
+        } else {
+            userPage = userRepository.findAll(pageable);
+        }
+
+        UserManagementList userManagementList = new UserManagementList();
+        userManagementList.setPage(page);
+        userManagementList.setPageSize(userPage.getSize());
+        userManagementList.setTotalElements(userPage.getTotalElements());
+        userManagementList.setTotalPages(userPage.getTotalPages());
+        userManagementList.setUsers(convertToUserResponseDtoList(userPage.getContent()));
+        return userManagementList;
+    }
+
+    private List<UserResponseDto> convertToUserResponseDtoList(List<User> users) {
+        List<UserResponseDto> userResponseDtoList = new ArrayList<>();
+        for (User user : users) {
+            UserResponseDto userResponseDto = new UserResponseDto();
+            BeanUtils.copyProperties(user, userResponseDto);
+            userResponseDtoList.add(userResponseDto);
+        }
+        return userResponseDtoList;
+    }
+
+    @Override
+    public Long getTotalMoney(String status) {
+        return transactionMoneyRepository.getSumAmountByStatus(status);
+    }
 
 }

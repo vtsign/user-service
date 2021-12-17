@@ -11,6 +11,7 @@ public interface RoleService {
 
     long count();
 
-
     void delete(Role role);
+
+    Role findByName(String name);
 }
