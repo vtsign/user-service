@@ -3,10 +3,7 @@ package tech.vtsign.userservice.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.web.multipart.MultipartFile;
 import tech.vtsign.userservice.domain.User;
-import tech.vtsign.userservice.model.DTOList;
-import tech.vtsign.userservice.model.UserChangePasswordDto;
-import tech.vtsign.userservice.model.UserDepositDto;
-import tech.vtsign.userservice.model.UserUpdateDto;
+import tech.vtsign.userservice.model.*;
 import tech.vtsign.userservice.model.zalopay.ZaloPayCallbackRequest;
 import tech.vtsign.userservice.model.zalopay.ZaloPayResponse;
 
@@ -65,4 +62,7 @@ public interface UserService {
 
     DTOList<?> getTransactionManagementList(User user, int page, int pageSize);
 
+    List<StatisticDto> getStatisticMoney(String status, String type);
+
+    List<StatisticDto> getStatisticUser(String type);
 }

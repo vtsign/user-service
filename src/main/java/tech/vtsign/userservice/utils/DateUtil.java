@@ -4,10 +4,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.TimeZone;
+import java.util.*;
 
 import static java.time.DayOfWeek.MONDAY;
 import static java.time.DayOfWeek.SUNDAY;
@@ -22,10 +19,12 @@ public class DateUtil {
         return fmt.format(cal.getTimeInMillis());
     }
 
-    public static List<LocalDateTime> getDateBetween(String type) {
-        LocalDate today = LocalDate.now();
-        LocalDateTime startDate = today.atStartOfDay(),
-                endDate = today.atTime(LocalTime.MAX);
+    public static LocalDateTime[] getDateBetween(String type) {
+        return getDateBetween(type, LocalDate.now());
+    }
+
+    public static LocalDateTime[] getDateBetween(String type, LocalDate today) {
+        LocalDateTime startDate, endDate;
         switch (type) {
             case "date":
                 startDate = today.atStartOfDay();
@@ -43,7 +42,85 @@ public class DateUtil {
                 startDate = today.withDayOfYear(1).atStartOfDay();
                 endDate = today.withDayOfYear(today.lengthOfYear()).atTime(LocalTime.MAX);
                 break;
+            default:
+                throw new IllegalArgumentException("type not found");
         }
-        return List.of(startDate, endDate);
+        return new LocalDateTime[]{startDate, endDate};
     }
+
+    public static Map<String, LocalDateTime[]> getListLocalDateTime(String type) {
+        return getListLocalDateTime(type, LocalDate.now());
+    }
+
+    public static Map<String, LocalDateTime[]> getListLocalDateTime(String type, LocalDate today) {
+        Map<String, LocalDateTime[]> map = new LinkedHashMap<>();
+        switch (type) {
+            case "week":
+                while (today.getDayOfWeek() != MONDAY) {
+                    map.put(today.getDayOfWeek().name(), getDateBetween("date", today));
+                    today = today.minusDays(1);
+                }
+                map.put(today.getDayOfWeek().name(), getDateBetween("date", today));
+                map = reverseMap(map);
+                break;
+            case "month":
+                LocalDate firstDate = today.withDayOfMonth(1);
+                int week = 1;
+                while (firstDate.getDayOfYear() < today.getDayOfYear() && week <= 5) {
+                    LocalDateTime startDate = firstDate.atStartOfDay();
+                    LocalDateTime endDate;
+                    if (week == 5) {
+                        endDate = today.atTime(LocalTime.MAX);
+                    } else {
+                        endDate = firstDate.plusDays(6).atTime(LocalTime.MAX);
+                    }
+                    map.put("WEEK " + week, new LocalDateTime[]{startDate, endDate});
+                    week++;
+                    firstDate = firstDate.plusDays(7);
+                }
+                break;
+            case "year":
+                while (today.getMonthValue() != 1) {
+                    map.put(today.getMonth().name(), getDateBetween("month", today));
+                    today = today.minusMonths(1);
+                }
+                map.put(today.getMonth().name(), getDateBetween("month", today));
+                map = reverseMap(map);
+                break;
+            case "all":
+                while (today.getYear() >= 2021) {
+                    map.put(today.getYear() + "", getDateBetween("year", today));
+                    today = today.minusYears(1);
+                }
+                map = reverseMap(map);
+                break;
+
+            default:
+                throw new IllegalArgumentException("type not found");
+        }
+        return map;
+    }
+
+    private static Map<String, LocalDateTime[]> reverseMap(Map<String, LocalDateTime[]> map) {
+        Map<String, LocalDateTime[]> reverseMap = new LinkedHashMap<>();
+        List<String> keys = new ArrayList<>(map.keySet());
+        Collections.reverse(keys);
+        for (String key : keys) {
+            reverseMap.put(key, map.get(key));
+        }
+        return reverseMap;
+    }
+
+    // tuan : monday -> current day
+    // thang: week 1 -> current week
+    // nam: month 1 -> current month
+
+    // type : week, month, year, all
+
+    // week: monday, tuesday, wednesday, thursday, friday, saturday, sunday
+    // month: week 1, 2, 3, 4
+    // year: month 1, 2, 3, 4, 5,..., 12
+    // all: year 2021, 2022, ...
+
+
 }

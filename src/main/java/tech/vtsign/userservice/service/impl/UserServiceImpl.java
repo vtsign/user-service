@@ -32,6 +32,7 @@ import tech.vtsign.userservice.service.AzureStorageService;
 import tech.vtsign.userservice.service.RoleService;
 import tech.vtsign.userservice.service.UserProducer;
 import tech.vtsign.userservice.service.UserService;
+import tech.vtsign.userservice.utils.DateUtil;
 import tech.vtsign.userservice.utils.zalopay.crypto.HMACUtil;
 
 import javax.crypto.Mac;
@@ -506,6 +507,46 @@ public class UserServiceImpl implements UserService {
         DTOList.setTotalPages(transactionMoneyPage.getTotalPages());
         DTOList.setList(convertToDto(transactionMoneyPage.getContent(), TransactionMoneyDto.class));
         return DTOList;
+    }
+
+    @Override
+    public List<StatisticDto> getStatisticMoney(String status, String type) {
+        try {
+            List<StatisticDto> statistics = new ArrayList<>();
+            Map<String, LocalDateTime[]> dates = DateUtil.getListLocalDateTime(type);
+            for (Map.Entry<String, LocalDateTime[]> entry : dates.entrySet()) {
+                LocalDateTime fromDate = entry.getValue()[0];
+                LocalDateTime toDate = entry.getValue()[1];
+                Long totalMoney = getTotalMoney(status, fromDate, toDate);
+                StatisticDto statisticDto = new StatisticDto();
+                statisticDto.setName(entry.getKey());
+                statisticDto.setValue(totalMoney == null ? 0 : totalMoney);
+                statistics.add(statisticDto);
+            }
+            return statistics;
+        } catch (Exception e) {
+            throw new NotFoundException("Invalid type");
+        }
+    }
+
+    @Override
+    public List<StatisticDto> getStatisticUser(String type) {
+        try {
+            List<StatisticDto> statistics = new ArrayList<>();
+            Map<String, LocalDateTime[]> dates = DateUtil.getListLocalDateTime(type);
+            for (Map.Entry<String, LocalDateTime[]> entry : dates.entrySet()) {
+                LocalDateTime fromDate = entry.getValue()[0];
+                LocalDateTime toDate = entry.getValue()[1];
+                Long totalUser = userRepository.countAllByCreatedDateBetween(fromDate, toDate);
+                StatisticDto statisticDto = new StatisticDto();
+                statisticDto.setName(entry.getKey());
+                statisticDto.setValue(totalUser);
+                statistics.add(statisticDto);
+            }
+            return statistics;
+        } catch (Exception e) {
+            throw new NotFoundException("Invalid type");
+        }
     }
 
 }

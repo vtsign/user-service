@@ -90,16 +90,26 @@ public class ManagementController {
 
     @GetMapping("/total-deposit")
     public ResponseEntity<?> getTotalDeposit(@RequestParam(value = "type", defaultValue = "date") String type) {
-        List<LocalDateTime> dates = DateUtil.getDateBetween(type);
-        Long totalMoney = userService.getTotalMoney(TransactionConstant.DEPOSIT_STATUS, dates.get(0), dates.get(1));
+        LocalDateTime[] dates = DateUtil.getDateBetween(type);
+        Long totalMoney = userService.getTotalMoney(TransactionConstant.DEPOSIT_STATUS, dates[0], dates[1]);
         return ResponseEntity.ok(totalMoney != null ? totalMoney : 0);
     }
 
     @GetMapping("/count-user")
     public ResponseEntity<?> countByDate(@RequestParam(value = "type", defaultValue = "date") String type) {
-        List<LocalDateTime> dates = DateUtil.getDateBetween(type);
-        long count = userService.countUserBetweenDate(dates.get(0), dates.get(1));
+        LocalDateTime[] dates = DateUtil.getDateBetween(type);
+        long count = userService.countUserBetweenDate(dates[0], dates[1]);
         return ResponseEntity.ok(count);
+    }
+
+    @GetMapping("/statistic-money")
+    public ResponseEntity<?> statisticMoney(@RequestParam(value = "type", defaultValue = "week") String type) {
+        return ResponseEntity.ok(userService.getStatisticMoney(TransactionConstant.DEPOSIT_STATUS, type));
+    }
+
+    @GetMapping("/statistic-user")
+    public ResponseEntity<?> statisticUser(@RequestParam(value = "type", defaultValue = "week") String type) {
+        return ResponseEntity.ok(userService.getStatisticUser(type));
     }
 
 }
