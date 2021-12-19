@@ -449,11 +449,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public DTOList<?> getUserManagementList(int page, int pageSize, String sortField, String sortType, String keyword) {
-        Sort sort = Sort.by(sortField).ascending();
-        if (sortType.equals("desc")) {
-            sort = Sort.by(sortField).descending();
-        }
-        Pageable pageable = PageRequest.of(page - 1, pageSize, sort);
+        Pageable pageable = getPageable(page, pageSize, sortField, sortType);
 
         Page<User> userPage;
         if (keyword != null && !keyword.isEmpty()) {
@@ -461,7 +457,46 @@ public class UserServiceImpl implements UserService {
         } else {
             userPage = userRepository.findAll(pageable);
         }
+        return getDtoList(page, userPage);
+    }
 
+    @Override
+    public DTOList<?> getBlockedUsers(int page, int pageSize, String sortField, String sortType, String keyword) {
+        Pageable pageable = getPageable(page, pageSize, sortField, sortType);
+
+        Page<User> userPage;
+        if (keyword != null && !keyword.isEmpty()) {
+            userPage = userRepository.findAllUserBlocked(keyword, pageable);
+        } else {
+            userPage = userRepository.findAllUserBlocked(pageable);
+        }
+
+        return getDtoList(page, userPage);
+    }
+
+    @Override
+    public DTOList<?> getDeletedUsers(int page, int pageSize, String sortField, String sortType, String keyword) {
+        Pageable pageable = getPageable(page, pageSize, sortField, sortType);
+
+        Page<User> userPage;
+        if (keyword != null && !keyword.isEmpty()) {
+            userPage = userRepository.findAllUserDeleted(keyword, pageable);
+        } else {
+            userPage = userRepository.findAllUserDeleted(pageable);
+        }
+
+        return getDtoList(page, userPage);
+    }
+
+    private Pageable getPageable(int page, int pageSize, String sortField, String sortType) {
+        Sort sort = Sort.by(sortField).ascending();
+        if (sortType.equals("desc")) {
+            sort = Sort.by(sortField).descending();
+        }
+        return PageRequest.of(page - 1, pageSize, sort);
+    }
+
+    private DTOList<?> getDtoList(int page, Page<User> userPage) {
         DTOList<UserResponseDto> DTOList = new DTOList<>();
         DTOList.setPage(page);
         DTOList.setPageSize(userPage.getSize());
@@ -548,5 +583,4 @@ public class UserServiceImpl implements UserService {
             throw new NotFoundException("Invalid type");
         }
     }
-
 }
