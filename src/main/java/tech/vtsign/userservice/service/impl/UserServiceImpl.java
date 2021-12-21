@@ -125,9 +125,10 @@ public class UserServiceImpl implements UserService {
             user.setRoles(roles);
         }
         User userSave = userRepository.save(user);
-        if (userUpdateDto.getRole() == null) {
-            documentServiceProxy.updateUser(userSave);
-        }
+        documentServiceProxy.updateUser(userSave);
+//        if (userUpdateDto.getRole() == null) {
+//            documentServiceProxy.updateUser(userSave);
+//        }
         return userSave;
     }
 
@@ -386,7 +387,6 @@ public class UserServiceImpl implements UserService {
         transactionMoneyRepository.save(transactionMoney);
         user.setBalance(initBalance);
         user.setEnabled(true);
-        documentServiceProxy.saveUser(user);
         return true;
     }
 
