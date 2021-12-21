@@ -522,6 +522,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Long getTotalMoney(String status) {
+        return transactionMoneyRepository.getSumAmountByStatus(status);
+    }
+
+    @Override
     public DTOList<?> getTransactionManagementList(User user, int page, int pageSize) {
         Pageable pageable = PageRequest.of(page - 1, pageSize);
         Page<TransactionMoney> transactionMoneyPage = transactionMoneyRepository.findAll(new Specification<>() {

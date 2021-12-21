@@ -33,6 +33,14 @@ public class ManagementController {
     private final UserService userService;
     private final RoleService roleService;
 
+    @GetMapping("/customer/{id}")
+    public UserResponseDto getUserById(@PathVariable UUID id) {
+        User user = userService.findUserById(id);
+        UserResponseDto userResponseDto = new UserResponseDto();
+        BeanUtils.copyProperties(user, userResponseDto);
+        return userResponseDto;
+    }
+
     @GetMapping("/list")
     public DTOList<?> getManagement(
             @RequestParam(value = "page", defaultValue = "1") int page,
@@ -112,6 +120,9 @@ public class ManagementController {
 
     @GetMapping("/total-deposit")
     public ResponseEntity<?> getTotalDeposit(@RequestParam(value = "type", defaultValue = "date") String type) {
+        if("all".equals(type)) {
+            return ResponseEntity.ok(userService.getTotalMoney(TransactionConstant.DEPOSIT_STATUS));
+        }
         LocalDateTime[] dates = DateUtil.getDateBetween(type);
         Long totalMoney = userService.getTotalMoney(TransactionConstant.DEPOSIT_STATUS, dates[0], dates[1]);
         return ResponseEntity.ok(totalMoney != null ? totalMoney : 0);
@@ -119,6 +130,9 @@ public class ManagementController {
 
     @GetMapping("/count-user")
     public ResponseEntity<?> countByDate(@RequestParam(value = "type", defaultValue = "date") String type) {
+        if("all".equals(type)) {
+            return ResponseEntity.ok(userService.count());
+        }
         LocalDateTime[] dates = DateUtil.getDateBetween(type);
         long count = userService.countUserBetweenDate(dates[0], dates[1]);
         return ResponseEntity.ok(count);

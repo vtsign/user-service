@@ -59,6 +59,7 @@ public interface UserService {
     DTOList<?> getUserManagementList(int page, int pageSize, String sortField, String sortType, String keyword);
 
     Long getTotalMoney(String status, LocalDateTime fromDate, LocalDateTime toDate);
+    Long getTotalMoney(String status);
 
     DTOList<?> getTransactionManagementList(User user, int page, int pageSize);
 
