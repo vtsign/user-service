@@ -43,8 +43,8 @@ public class ManagementController {
 
     @GetMapping("/list")
     public DTOList<?> getManagement(
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "pageSize", defaultValue = "5") int pageSize,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "pageSize", defaultValue = "5") int pageSize,
             @RequestParam(name = "sortField", required = false, defaultValue = "firstName") String sortField,
             @RequestParam(name = "sortType", required = false, defaultValue = "asc") String sortType,
             @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword
@@ -54,8 +54,8 @@ public class ManagementController {
 
     @GetMapping("/list-block")
     public DTOList<?> getBlockedUsers(
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "pageSize", defaultValue = "5") int pageSize,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "pageSize", defaultValue = "5") int pageSize,
             @RequestParam(name = "sortField", required = false, defaultValue = "firstName") String sortField,
             @RequestParam(name = "sortType", required = false, defaultValue = "asc") String sortType,
             @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword
@@ -65,8 +65,8 @@ public class ManagementController {
 
     @GetMapping("/list-deleted")
     public DTOList<?> getDeletedUsers(
-            @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "pageSize", defaultValue = "5") int pageSize,
+            @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "pageSize", defaultValue = "5") int pageSize,
             @RequestParam(name = "sortField", required = false, defaultValue = "firstName") String sortField,
             @RequestParam(name = "sortType", required = false, defaultValue = "asc") String sortType,
             @RequestParam(name = "keyword", required = false, defaultValue = "") String keyword
@@ -119,8 +119,8 @@ public class ManagementController {
     }
 
     @GetMapping("/total-deposit")
-    public ResponseEntity<?> getTotalDeposit(@RequestParam(value = "type", defaultValue = "date") String type) {
-        if("all".equals(type)) {
+    public ResponseEntity<?> getTotalDeposit(@RequestParam(name = "type", defaultValue = "date") String type) {
+        if ("all".equals(type)) {
             return ResponseEntity.ok(userService.getTotalMoney(TransactionConstant.DEPOSIT_STATUS));
         }
         LocalDateTime[] dates = DateUtil.getDateBetween(type);
@@ -129,8 +129,8 @@ public class ManagementController {
     }
 
     @GetMapping("/count-user")
-    public ResponseEntity<?> countByDate(@RequestParam(value = "type", defaultValue = "date") String type) {
-        if("all".equals(type)) {
+    public ResponseEntity<?> countByDate(@RequestParam(name = "type", defaultValue = "date") String type) {
+        if ("all".equals(type)) {
             return ResponseEntity.ok(userService.count());
         }
         LocalDateTime[] dates = DateUtil.getDateBetween(type);
@@ -139,13 +139,24 @@ public class ManagementController {
     }
 
     @GetMapping("/statistic-money")
-    public ResponseEntity<?> statisticMoney(@RequestParam(value = "type", defaultValue = "week") String type) {
+    public ResponseEntity<?> statisticMoney(@RequestParam(name = "type", defaultValue = "week") String type) {
         return ResponseEntity.ok(userService.getStatisticMoney(TransactionConstant.DEPOSIT_STATUS, type));
     }
 
     @GetMapping("/statistic-user")
-    public ResponseEntity<?> statisticUser(@RequestParam(value = "type", defaultValue = "week") String type) {
+    public ResponseEntity<?> statisticUser(@RequestParam(name = "type", defaultValue = "week") String type) {
         return ResponseEntity.ok(userService.getStatisticUser(type));
     }
+
+    @GetMapping("/transactions")
+    public ResponseEntity<DTOList<?>> findAllTransactions(@RequestParam(value = "id") UUID userId,
+                                                          @RequestParam(value = "page", required = false, defaultValue = "1") int page,
+                                                          @RequestParam(value = "size", required = false, defaultValue = "4") int size) {
+        User user = new User();
+        user.setId(userId);
+        DTOList<?> transactions = userService.getTransactionManagementList(user, page, size);
+        return ResponseEntity.ok(transactions);
+    }
+
 
 }
