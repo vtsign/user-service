@@ -509,7 +509,7 @@ public class UserServiceImpl implements UserService {
     private <T, V> List<T> convertToDto(List<V> source, Class<T> clazz) {
         List<T> des = new ArrayList<>();
         for (V v : source) {
-            T t = (T) BeanUtils.instantiateClass(clazz);
+            T t = BeanUtils.instantiateClass(clazz);
             BeanUtils.copyProperties(v, t);
             des.add(t);
         }
@@ -527,8 +527,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public DTOList<?> getTransactionManagementList(User user, int page, int pageSize) {
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
+    public DTOList<?> getTransactionManagementList(User user, int page, int pageSize, String sortField, String sortType) {
+        Sort sort = Sort.by(sortField).ascending();
+        if (sortType.equals("desc")) {
+            sort = Sort.by(sortField).descending();
+        }
+        Pageable pageable = PageRequest.of(page - 1, pageSize, sort);
         Page<TransactionMoney> transactionMoneyPage = transactionMoneyRepository.findAll(new Specification<>() {
             final List<Predicate> predicates = new ArrayList<>();
 

@@ -151,10 +151,12 @@ public class ManagementController {
     @GetMapping("/transactions")
     public ResponseEntity<DTOList<?>> findAllTransactions(@RequestParam(value = "id") UUID userId,
                                                           @RequestParam(value = "page", required = false, defaultValue = "1") int page,
-                                                          @RequestParam(value = "size", required = false, defaultValue = "4") int size) {
+                                                          @RequestParam(value = "size", required = false, defaultValue = "4") int size,
+                                                          @RequestParam(name = "sort_field", required = false, defaultValue = "createdDate") String sortField,
+                                                          @RequestParam(name = "sort_type", required = false, defaultValue = "desc") String sortType) {
         User user = new User();
         user.setId(userId);
-        DTOList<?> transactions = userService.getTransactionManagementList(user, page, size);
+        DTOList<?> transactions = userService.getTransactionManagementList(user, page, size, sortField, sortType);
         return ResponseEntity.ok(transactions);
     }
 
