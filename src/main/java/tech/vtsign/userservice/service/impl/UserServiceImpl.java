@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import tech.vtsign.userservice.constant.TransactionConstant;
+import tech.vtsign.userservice.domain.ResetLink;
 import tech.vtsign.userservice.domain.Role;
 import tech.vtsign.userservice.domain.TransactionMoney;
 import tech.vtsign.userservice.domain.User;
@@ -25,6 +26,7 @@ import tech.vtsign.userservice.model.*;
 import tech.vtsign.userservice.model.zalopay.*;
 import tech.vtsign.userservice.proxy.DocumentServiceProxy;
 import tech.vtsign.userservice.proxy.ZaloPayServiceProxy;
+import tech.vtsign.userservice.repository.ResetLinkRepository;
 import tech.vtsign.userservice.repository.RoleRepository;
 import tech.vtsign.userservice.repository.TransactionMoneyRepository;
 import tech.vtsign.userservice.repository.UserRepository;
@@ -56,6 +58,7 @@ import static tech.vtsign.userservice.utils.DateUtil.getCurrentTimeString;
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final ResetLinkRepository resetLinkRepository;
     private final RoleService roleService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final UserProducer userProducer;
@@ -63,6 +66,11 @@ public class UserServiceImpl implements UserService {
     private final DocumentServiceProxy documentServiceProxy;
     private final TransactionMoneyRepository transactionMoneyRepository;
     private final AzureStorageService azureStorageService;
+
+    @Value("${tech.vtsign.kafka.user-service.register}")
+    private String topicUserServiceRegister;
+    @Value("${tech.vtsign.kafka.user-service.reset-password}")
+    private String topicUserServiceResetPassword;
 
     @Value("${tech.vtsign.zalopay.app-id}")
     private int appId;
@@ -299,7 +307,7 @@ public class UserServiceImpl implements UserService {
         Activation activation = new Activation();
         activation.setTo(user.getEmail());
         activation.setUrl(String.format("%s/activation/%s", hostname, user.getId()));
-        userProducer.sendMessage(activation);
+        userProducer.sendMessage(activation, topicUserServiceRegister);
         return (S) userSave;
     }
 
@@ -320,7 +328,7 @@ public class UserServiceImpl implements UserService {
         Activation activation = new Activation();
         activation.setTo(user.getEmail());
         activation.setUrl(String.format("%s/activation/%s", "https://qlda02.herokuapp.com", user.getId()));
-        userProducer.sendMessage(activation);
+        userProducer.sendMessage(activation, topicUserServiceRegister);
         return userSave;
     }
 
@@ -486,6 +494,45 @@ public class UserServiceImpl implements UserService {
         }
 
         return getDtoList(page, userPage);
+    }
+
+    @Override
+    public void resetPassword(String email) {
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new NotFoundException("User not found"));
+        if (user.isTempAccount()) {
+            throw new NotFoundException("User not found");
+        }
+        ResetLink resetLink = new ResetLink();
+        resetLink.setUser(user);
+        resetLink.setCreatedAt(LocalDateTime.now());
+        resetLink.setExpiresAt(LocalDateTime.now().plusHours(1));
+        ResetLink resetLinkSave = resetLinkRepository.save(resetLink);
+        // send to notification service
+        ResetPasswordTransfer resetPasswordTransfer = new ResetPasswordTransfer();
+        resetPasswordTransfer.setUrl(String.format("%s/reset-password?code=%s", hostname, resetLinkSave.getId()));
+        resetPasswordTransfer.setTo(user.getEmail());
+        resetPasswordTransfer.setExpireAt(resetLink.getExpiresAt());
+        userProducer.sendMessage(resetPasswordTransfer, topicUserServiceResetPassword);
+    }
+
+    @Override
+    public ResetLink checkRestLink(UUID linkId) {
+        ResetLink resetLink = resetLinkRepository.findById(linkId)
+                .orElseThrow(() -> new NotFoundException("Reset link not found"));
+        if (resetLink.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new BadRequestException("Reset link expired");
+        }
+        return resetLink;
+    }
+
+    @Override
+    public boolean resetPassword(UUID linkId, String password) {
+        ResetLink resetLink = checkRestLink(linkId);
+        User user = resetLink.getUser();
+        user.setPassword(bCryptPasswordEncoder.encode(password));
+        userRepository.save(user);
+        resetLinkRepository.delete(resetLink);
+        return true;
     }
 
     private Pageable getPageable(int page, int pageSize, String sortField, String sortType) {

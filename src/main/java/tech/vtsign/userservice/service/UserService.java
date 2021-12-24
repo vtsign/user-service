@@ -2,6 +2,7 @@ package tech.vtsign.userservice.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import org.springframework.web.multipart.MultipartFile;
+import tech.vtsign.userservice.domain.ResetLink;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.model.*;
 import tech.vtsign.userservice.model.zalopay.ZaloPayCallbackRequest;
@@ -70,4 +71,10 @@ public interface UserService {
     DTOList<?> getBlockedUsers(int page, int pageSize, String sortField, String sortType, String keyword);
 
     DTOList<?> getDeletedUsers(int page, int pageSize, String sortField, String sortType, String keyword);
+
+    void resetPassword(String email);
+
+    ResetLink checkRestLink(UUID linkId);
+
+    boolean resetPassword(UUID linkId, String password);
 }

@@ -20,10 +20,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import tech.vtsign.userservice.constant.RoleName;
+import tech.vtsign.userservice.domain.ResetLink;
 import tech.vtsign.userservice.domain.Role;
 import tech.vtsign.userservice.domain.User;
 import tech.vtsign.userservice.exception.ExceptionResponse;
 import tech.vtsign.userservice.exception.MissingFieldException;
+import tech.vtsign.userservice.model.ResetPasswordRequestDto;
 import tech.vtsign.userservice.model.UserLoginDto;
 import tech.vtsign.userservice.model.UserRequestDto;
 import tech.vtsign.userservice.model.UserResponseDto;
@@ -227,6 +229,67 @@ public class AcceptController {
     public ResponseEntity<Boolean> activation(@PathVariable UUID id) throws NoSuchAlgorithmException {
         boolean active = userService.activation(id);
         return ResponseEntity.ok(active);
+    }
+
+    @Operation(summary = "Create a reset password request")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Success, Link has been sent to your email",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = Boolean.class))
+                    }),
+            @ApiResponse(responseCode = "404", description = "Not found user with this email",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+    })
+
+    @GetMapping("/reset-password")
+    public boolean reset(@RequestParam(name = "email") String email) {
+        userService.resetPassword(email);
+        return true;
+    }
+
+    @Operation(summary = "Check reset password correct")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Success, Link active valid",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = Boolean.class))
+                    }),
+            @ApiResponse(responseCode = "404", description = "Link active not exist",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Link invalid",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    })
+    })
+
+    @GetMapping("/check-reset-password")
+    public ResponseEntity<?> checkResetLink(@RequestParam(name = "code") UUID code) {
+        ResetLink resetLink = userService.checkRestLink(code);
+        return ResponseEntity.ok(resetLink != null);
+    }
+
+    @Operation(summary = "Reset user password")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Success, user password has been changed",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = Boolean.class))
+                    }),
+            @ApiResponse(responseCode = "404", description = "Link active not exist",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Link invalid or expired",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    })
+    })
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequestDto request) {
+        return ResponseEntity.ok(userService.resetPassword(request.getCode(), request.getPassword()));
     }
 
     @Operation(summary = "Zalopay callback")
