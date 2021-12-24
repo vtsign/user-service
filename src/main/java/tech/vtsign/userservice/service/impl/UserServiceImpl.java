@@ -71,6 +71,8 @@ public class UserServiceImpl implements UserService {
     private String topicUserServiceRegister;
     @Value("${tech.vtsign.kafka.user-service.reset-password}")
     private String topicUserServiceResetPassword;
+    @Value("${tech.vtsign.kafka.user-service.notify-common}")
+    private String topicUserServiceNotifyCommon;
 
     @Value("${tech.vtsign.zalopay.app-id}")
     private int appId;
@@ -134,9 +136,12 @@ public class UserServiceImpl implements UserService {
         }
         User userSave = userRepository.save(user);
         documentServiceProxy.updateUser(userSave);
-//        if (userUpdateDto.getRole() == null) {
-//            documentServiceProxy.updateUser(userSave);
-//        }
+        // sent message
+        CommonMessage commonMessage = new CommonMessage();
+        commonMessage.setTitle("Cập nhật thông tin tài khoản");
+        commonMessage.setMessage("Tài khoản của bạn vừa được cập nhập thông tin thành công");
+        commonMessage.setTo(user.getEmail());
+        sendNotificationMessage(commonMessage);
         return userSave;
     }
 
@@ -147,7 +152,16 @@ public class UserServiceImpl implements UserService {
             throw new UnauthorizedException("Invalid old password");
         }
         user.setPassword(bCryptPasswordEncoder.encode(userChangePasswordDto.getNewPassword()));
-        return userRepository.save(user);
+        User saved = userRepository.save(user);
+        // sent message
+        CommonMessage commonMessage = new CommonMessage();
+        commonMessage.setTitle("Cập nhật mật khẩu");
+        commonMessage.setMessage("Mật khẩu của bạn vừa được thay đổi thành công");
+        commonMessage.setTo(user.getEmail());
+        sendNotificationMessage(commonMessage);
+
+        return saved;
+
     }
 
     @Override
@@ -227,7 +241,12 @@ public class UserServiceImpl implements UserService {
                     transactionMoney.setDescription(TransactionConstant.DEPOSIT_DESCRIPTION);
                     transactionMoney.setUser(user);
                     transactionMoneyRepository.save(transactionMoney);
-
+                    // sent message
+                    CommonMessage commonMessage = new CommonMessage();
+                    commonMessage.setTitle("Nạp tiền thành công");
+                    commonMessage.setMessage("Bạn vừa nạp thành công " + item.getAmount() + " VND");
+                    commonMessage.setTo(user.getEmail());
+                    sendNotificationMessage(commonMessage);
                 }
                 response.setCode(1);
                 response.setMessage("success");
@@ -428,6 +447,12 @@ public class UserServiceImpl implements UserService {
     public boolean blockUser(UUID userUUID, boolean isBlock) {
         User user = findById(userUUID);
         user.setBlocked(isBlock);
+        // sent message
+        CommonMessage commonMessage = new CommonMessage();
+        commonMessage.setTitle("Khóa tài khoản");
+        commonMessage.setMessage("Tài khoản của bạn đã bị khóa");
+        commonMessage.setTo(user.getEmail());
+        sendNotificationMessage(commonMessage);
         return true;
     }
 
@@ -436,6 +461,11 @@ public class UserServiceImpl implements UserService {
     public boolean deleteUser(UUID userUUID, boolean isDelete) {
         User user = findById(userUUID);
         user.setDeleted(isDelete);
+        // sent message
+        CommonMessage commonMessage = new CommonMessage();
+        commonMessage.setTitle("Xóa tài khoản");
+        commonMessage.setMessage("Tài khoản của bạn đã bị vô hiệu hóa");
+        commonMessage.setTo(user.getEmail());
         return true;
     }
 
@@ -532,6 +562,11 @@ public class UserServiceImpl implements UserService {
         user.setPassword(bCryptPasswordEncoder.encode(password));
         userRepository.save(user);
         resetLinkRepository.delete(resetLink);
+        // sent message
+        CommonMessage commonMessage = new CommonMessage();
+        commonMessage.setTitle("Cập nhật mật khẩu thành công");
+        commonMessage.setMessage("Mật khẩu của bạn đã được cập nhật thành công. Vui lòng vào " + hostname + "/login để đăng nhập lại.");
+        commonMessage.setTo(user.getEmail());
         return true;
     }
 
@@ -638,5 +673,9 @@ public class UserServiceImpl implements UserService {
         } catch (Exception e) {
             throw new NotFoundException("Invalid type");
         }
+    }
+
+    private void sendNotificationMessage(CommonMessage message) {
+        userProducer.sendMessage(message, topicUserServiceNotifyCommon);
     }
 }
