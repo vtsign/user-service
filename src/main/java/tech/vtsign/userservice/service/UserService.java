@@ -62,7 +62,7 @@ public interface UserService {
     Long getTotalMoney(String status, LocalDateTime fromDate, LocalDateTime toDate);
     Long getTotalMoney(String status);
 
-    DTOList<?> getTransactionManagementList(User user, int page, int pageSize);
+    DTOList<?> getTransactionManagementList(User user, int page, int pageSize, String sortField, String sortType);
 
     List<StatisticDto> getStatisticMoney(String status, String type);
 
