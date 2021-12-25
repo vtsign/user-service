@@ -39,7 +39,7 @@ public class UserController {
     private final UserService userService;
     private final ServletContext context;
 
-    @Operation(summary = "Check user exists by email")
+    @Operation(summary = "Check User Exists By Email")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "true: exists, false: not exists",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Boolean.class))
@@ -69,7 +69,7 @@ public class UserController {
         return ResponseEntity.ok(exists);
     }
 
-    @Operation(summary = "Get user profile")
+    @Operation(summary = "Get User Profile")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Get user profile",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.class))
@@ -90,7 +90,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @Operation(summary = "Update user profile")
+    @Operation(summary = "Update User Profile")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Update user profile",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.class))
@@ -117,7 +117,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @Operation(summary = "User update password")
+    @Operation(summary = "User Update Password")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Change password successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.class))
@@ -154,7 +154,7 @@ public class UserController {
         return ResponseEntity.ok(user);
     }
 
-    @Operation(summary = "User update password")
+    @Operation(summary = "User Update Password")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Change password successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = UserResponseDto.class))
@@ -243,7 +243,7 @@ public class UserController {
         return ResponseEntity.ok(transactions);
     }
 
-    @Operation(summary = "Get maximum receivers to sign contract")
+    @Operation(summary = "Get Maximum Receivers To Sign Contract")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Long.class))

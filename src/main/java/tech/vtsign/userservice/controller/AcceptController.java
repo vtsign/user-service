@@ -51,7 +51,7 @@ public class AcceptController {
     private final RoleService roleService;
 
     @Hidden
-    @Operation(summary = "Get user by email [service call only]")
+    @Operation(summary = "Get User By Email [Service Call Only]")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Found the user",
                     content = {
@@ -97,7 +97,7 @@ public class AcceptController {
     }
 
     @Hidden
-    @Operation(summary = "Register account [service call only]")
+    @Operation(summary = "Register Account [Service Call Only]")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Success, user registered",
                     content = {
@@ -134,7 +134,7 @@ public class AcceptController {
     }
 
     @Hidden
-    @Operation(summary = "Register account [service call only]")
+    @Operation(summary = "Register Account [Service Call Only]")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "Success, user registered",
                     content = {
@@ -169,7 +169,7 @@ public class AcceptController {
     }
 
     @Hidden
-    @Operation(summary = "Login account [service call only]")
+    @Operation(summary = "Login Account [Service Call Only]")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Login successfully",
                     content = {
@@ -209,7 +209,7 @@ public class AcceptController {
 
 
     @SneakyThrows
-    @Operation(summary = "Account activation")
+    @Operation(summary = "Account Activation")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success, Account has been activated",
                     content = {
@@ -231,7 +231,7 @@ public class AcceptController {
         return ResponseEntity.ok(active);
     }
 
-    @Operation(summary = "Create a reset password request")
+    @Operation(summary = "Create A Reset Password Request")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success, Link has been sent to your email",
                     content = {
@@ -249,7 +249,7 @@ public class AcceptController {
         return true;
     }
 
-    @Operation(summary = "Check reset password correct")
+    @Operation(summary = "Check Reset Password Correct")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success, Link active valid",
                     content = {
@@ -271,7 +271,7 @@ public class AcceptController {
         return ResponseEntity.ok(resetLink != null);
     }
 
-    @Operation(summary = "Reset user password")
+    @Operation(summary = "Reset User Password")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Success, user password has been changed",
                     content = {
@@ -292,7 +292,7 @@ public class AcceptController {
         return ResponseEntity.ok(userService.resetPassword(request.getCode(), request.getPassword()));
     }
 
-    @Operation(summary = "Zalopay callback")
+    @Operation(summary = "Zalopay Callback")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "https://docs.zalopay.vn/v2/general/overview.html",
                     content = {
