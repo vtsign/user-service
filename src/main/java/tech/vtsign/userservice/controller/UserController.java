@@ -44,9 +44,17 @@ public class UserController {
             @ApiResponse(responseCode = "200", description = "true: exists, false: not exists",
                     content = @Content(mediaType = "application/json", schema = @Schema(implementation = Boolean.class))
             ),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Missing fields or accessToken",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
     })
     @GetMapping("check_exists")
-    public ResponseEntity<?> checkUserExistByEmail(@RequestParam("email") String email) {
+    public ResponseEntity<Boolean> checkUserExistByEmail(@RequestParam("email") String email) {
         // tai khoan tam xem nhu chua co tai khoan
         boolean exists = true;
         try {
@@ -69,11 +77,15 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found",
                     content = {
                             @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
-                    })
+                    }),
+            @ApiResponse(responseCode = "400", description = "Missing fields or accessToken",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
     })
     @GetMapping("profile")
-    public ResponseEntity<?> getProfile(@Parameter(hidden = true) @AuthenticationPrincipal
-                                                UserDetailsImpl userDetails) {
+    public ResponseEntity<UserResponseDto> getProfile(@Parameter(hidden = true) @AuthenticationPrincipal
+                                                              UserDetailsImpl userDetails) {
         UserResponseDto user = userDetails.getUser();
         return ResponseEntity.ok(user);
     }
@@ -86,13 +98,18 @@ public class UserController {
             @ApiResponse(responseCode = "404", description = "User not found",
                     content = {
                             @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
-                    })
+                    }),
+            @ApiResponse(responseCode = "400", description = "Missing fields or accessToken",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+
     })
 
     @PostMapping("profile")
-    public ResponseEntity<?> updateProfile(@Parameter(hidden = true) @AuthenticationPrincipal
-                                                   UserDetailsImpl userDetails,
-                                           @RequestBody UserUpdateDto userUpdateDto) {
+    public ResponseEntity<UserResponseDto> updateProfile(@Parameter(hidden = true) @AuthenticationPrincipal
+                                                                 UserDetailsImpl userDetails,
+                                                         @RequestBody UserUpdateDto userUpdateDto) {
         UserResponseDto user = userDetails.getUser();
         userUpdateDto.setRole(null);
         User updatedUser = userService.updateUser(user.getId(), userUpdateDto);
@@ -116,11 +133,15 @@ public class UserController {
             @ApiResponse(responseCode = "419", description = "Missing require field see message for more details",
                     content = {
                             @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
-                    })
+                    }),
+            @ApiResponse(responseCode = "400", description = "Missing fields or accessToken",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
     })
     @PostMapping("change-password")
-    public ResponseEntity<?> changePassword(@Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
-                                            @RequestBody @Validated UserChangePasswordDto userChangePasswordDto, BindingResult result) {
+    public ResponseEntity<UserResponseDto> changePassword(@Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                          @RequestBody @Validated UserChangePasswordDto userChangePasswordDto, BindingResult result) {
         if (result.hasErrors()) {
             String errorMessage = result.getAllErrors()
                     .stream().map(DefaultMessageSourceResolvable::getDefaultMessage)
@@ -148,8 +169,8 @@ public class UserController {
                     }),
     })
     @PostMapping("update-avatar")
-    public ResponseEntity<?> updateAvatar(@Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
-                                          @RequestPart("avatar") MultipartFile file) {
+    public ResponseEntity<UserResponseDto> updateAvatar(@Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
+                                                        @RequestPart("avatar") MultipartFile file) {
         UserResponseDto user = userDetails.getUser();
         if (file.isEmpty()) {
             throw new BadRequestException("Avatar is empty");
@@ -175,7 +196,11 @@ public class UserController {
             @ApiResponse(responseCode = "419", description = "Missing require field see message for more details",
                     content = {
                             @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
-                    })
+                    }),
+            @ApiResponse(responseCode = "400", description = "Missing fields or accessToken",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
     })
     @PostMapping("/deposit")
     public ResponseEntity<ZaloPayResponse> depositMoney(@Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -190,6 +215,21 @@ public class UserController {
         ZaloPayResponse zaloPayResponse = userService.deposit(userDetails.getUser().getId(), userDepositDto);
         return ResponseEntity.ok(zaloPayResponse);
     }
+
+    @Operation(summary = "List Transactions Of User")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully",
+                    content = @Content(mediaType = "application/json", schema = @Schema(implementation = DTOList.class))
+            ),
+            @ApiResponse(responseCode = "419", description = "Missing require field see message for more details",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "Missing fields or accessToken",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+    })
 
     @GetMapping("/transactions")
     public ResponseEntity<DTOList<?>> findAllTransactions(@Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails,
@@ -212,9 +252,13 @@ public class UserController {
                     content = {
                             @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
                     }),
+            @ApiResponse(responseCode = "400", description = "Missing fields or accessToken",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
     })
     @GetMapping("/max-receivers")
-    public ResponseEntity<?> maxReceivers(@Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
+    public ResponseEntity<Long> maxReceivers(@Parameter(hidden = true) @AuthenticationPrincipal UserDetailsImpl userDetails) {
         Long maxReceivers = userService.maxReceivers(userDetails.getUser().getId());
         return ResponseEntity.ok(maxReceivers);
     }

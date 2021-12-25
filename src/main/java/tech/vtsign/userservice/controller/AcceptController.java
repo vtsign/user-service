@@ -266,7 +266,7 @@ public class AcceptController {
     })
 
     @GetMapping("/check-reset-password")
-    public ResponseEntity<?> checkResetLink(@RequestParam(name = "code") UUID code) {
+    public ResponseEntity<Boolean> checkResetLink(@RequestParam(name = "code") UUID code) {
         ResetLink resetLink = userService.checkRestLink(code);
         return ResponseEntity.ok(resetLink != null);
     }
@@ -288,7 +288,7 @@ public class AcceptController {
     })
 
     @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequestDto request) {
+    public ResponseEntity<Boolean> resetPassword(@RequestBody ResetPasswordRequestDto request) {
         return ResponseEntity.ok(userService.resetPassword(request.getCode(), request.getPassword()));
     }
 
@@ -307,6 +307,8 @@ public class AcceptController {
         return ResponseEntity.ok(json);
     }
 
+
+    @Hidden
     @PostMapping("/payment")
     public ResponseEntity<Boolean> paymentForSendDocument(@RequestBody Item item) {
         Boolean result = userService.updateUserBalance(item.getUserId(), item.getAmount(), item.getStatus());
