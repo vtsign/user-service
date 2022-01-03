@@ -88,10 +88,10 @@ public class UserServiceImpl implements UserService {
     @Value("${tech.vtsign.hostname}")
     private String hostname;
     @Value("${tech.vtsign.zalopay.amount}")
-    private final long amount = 5000;
+    private long amount;
 
     @Value("${tech.vtsign.zalopay.init-balance}")
-    private final long initBalance = 10000;
+    private long initBalance;
 
     @Value("${tech.vtsign.zalopay.callback-key}")
     public void setCallbackKey(String key) {

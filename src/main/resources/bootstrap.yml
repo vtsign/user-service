@@ -3,23 +3,7 @@ spring:
     name: user-service
   cloud:
     config:
-      uri: http://vtsign.tech:8888
+      uri: ${CONFIG_SERVER_URI:http://localhost:8888 }
 server:
-  port: 8400
   servlet:
     context-path: /user
-  error:
-    whitelabel:
-      enabled: false
-springdoc:
-  version: '1.0'
-tech:
-  vtsign:
-    hostname: http://localhost:8765
-    kafka:
-      user-service:
-        register: 'user-service-register'
-
-    zalopay:
-      init-balance: 10000
-      amount: 5000

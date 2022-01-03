@@ -14,6 +14,10 @@ import org.springframework.context.annotation.Bean;
 @EnableEurekaClient
 @EnableFeignClients
 public class UserServiceApplication {
+    @Value("${tech.vtsign.api-url}")
+    private String apiUrl;
+    @Value("${server.servlet.context-path}")
+    private String path;
 
     public static void main(String[] args) {
         SpringApplication.run(UserServiceApplication.class, args);
@@ -26,6 +30,6 @@ public class UserServiceApplication {
                         .description("API documentation User Service")
                         .version(appVersion)
                 )
-                .addServersItem(new Server().url("https://api.vtsign.tech/user"));
+                .addServersItem(new Server().url(apiUrl+ path));
     }
 }
