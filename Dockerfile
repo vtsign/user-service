@@ -24,5 +24,8 @@ WORKDIR /app
 
 EXPOSE 8400
 ENV CONFIG_SERVER_URI=http://localhost:8888
+ENV PROFILE=dev
+ENV HOST=localhost
+
 COPY --from=build /app/target/*.jar ./
 CMD ["java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/user-service.jar"]
