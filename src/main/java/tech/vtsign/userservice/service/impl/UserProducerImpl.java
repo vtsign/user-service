@@ -17,10 +17,11 @@ public class UserProducerImpl implements UserProducer {
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
-    public void sendMessage(Object object, String topicUserServiceRegister) {
+    public void sendMessage(Object object, String topic) {
+        log.info("sendMessage to: {}", topic);
         Message<Object> message = MessageBuilder
                 .withPayload(object)
-                .setHeader(KafkaHeaders.TOPIC, topicUserServiceRegister)
+                .setHeader(KafkaHeaders.TOPIC, topic)
                 .build();
         this.kafkaTemplate.send(message);
     }
