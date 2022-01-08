@@ -18,6 +18,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("select u from User u where " +
             "(u.deleted = false) and " +
             "(u.blocked = false) and " +
+            "(u.tempAccount = false) and " +
             "(u.email like %?1% " +
             "or concat(u.firstName, ' ', u.lastName) like %?1% " +
             "or u.phone like %?1% " +
@@ -25,12 +26,13 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             "or u.address like %?1%)")
     Page<User> findAll(String keyword, Pageable pageable);
 
-    @Query("select u from User u where u.deleted = false and u.blocked = false")
+    @Query("select u from User u where u.deleted = false and u.blocked = false and u.tempAccount = false")
     Page<User> findAll(Pageable pageable);
 
     @Query("select u from User u where " +
             "(u.deleted = false) and " +
             "(u.blocked = true) and " +
+            "(u.tempAccount = false ) and " +
             "(u.email like %?1% " +
             "or concat(u.firstName, ' ', u.lastName) like %?1% " +
             "or u.phone like %?1% " +
@@ -38,11 +40,12 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             "or u.address like %?1%)")
     Page<User> findAllUserBlocked(String keyword, Pageable pageable);
 
-    @Query("select u from User u where u.deleted = false and u.blocked = true")
+    @Query("select u from User u where u.deleted = false and u.blocked = true and u.tempAccount = false ")
     Page<User> findAllUserBlocked(Pageable pageable);
 
     @Query("select u from User u where " +
             "(u.deleted = true) and " +
+            "(u.tempAccount = false) and " +
             "(u.email like %?1% " +
             "or concat(u.firstName, ' ', u.lastName) like %?1% " +
             "or u.phone like %?1% " +
@@ -50,8 +53,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
             "or u.address like %?1%)")
     Page<User> findAllUserDeleted(String keyword, Pageable pageable);
 
-    @Query("select u from User u where u.deleted = true")
+    @Query("select u from User u where u.deleted = true and u.tempAccount = false ")
     Page<User> findAllUserDeleted(Pageable pageable);
 
-    long countAllByCreatedDateBetween(LocalDateTime startDate, LocalDateTime endDate);
+    long countAllByCreatedDateBetweenAndTempAccount(LocalDateTime startDate, LocalDateTime endDate, boolean tempAccount);
 }

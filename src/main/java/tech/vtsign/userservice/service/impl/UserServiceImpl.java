@@ -476,7 +476,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public long countUserBetweenDate(LocalDateTime from, LocalDateTime to) {
-        return userRepository.countAllByCreatedDateBetween(from, to);
+        return userRepository.countAllByCreatedDateBetweenAndTempAccount(from, to, false);
     }
 
 
@@ -668,7 +668,7 @@ public class UserServiceImpl implements UserService {
             for (Map.Entry<String, LocalDateTime[]> entry : dates.entrySet()) {
                 LocalDateTime fromDate = entry.getValue()[0];
                 LocalDateTime toDate = entry.getValue()[1];
-                Long totalUser = userRepository.countAllByCreatedDateBetween(fromDate, toDate);
+                Long totalUser = userRepository.countAllByCreatedDateBetweenAndTempAccount(fromDate, toDate, false);
                 StatisticDto statisticDto = new StatisticDto();
                 statisticDto.setName(entry.getKey());
                 statisticDto.setValue(totalUser);
