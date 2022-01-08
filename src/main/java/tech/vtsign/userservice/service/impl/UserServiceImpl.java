@@ -353,7 +353,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public long count() {
-        return userRepository.count();
+        return userRepository.countAllByTempAccount(false);
     }
 
     @Override

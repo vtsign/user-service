@@ -57,4 +57,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Page<User> findAllUserDeleted(Pageable pageable);
 
     long countAllByCreatedDateBetweenAndTempAccount(LocalDateTime startDate, LocalDateTime endDate, boolean tempAccount);
+
+    long countAllByTempAccount(boolean tempAccount);
 }
