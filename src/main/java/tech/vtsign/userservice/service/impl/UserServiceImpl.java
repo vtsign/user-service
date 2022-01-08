@@ -448,9 +448,11 @@ public class UserServiceImpl implements UserService {
         User user = findById(userUUID);
         user.setBlocked(isBlock);
         // sent message
+        String message = "";
         CommonMessage commonMessage = new CommonMessage();
         commonMessage.setTitle("Khóa tài khoản");
-        commonMessage.setMessage("Tài khoản của bạn đã bị khóa");
+        message = isBlock ? "Tài khoản của bạn đã bị khóa" : "Tài khoản của bạn đã được mở khóa";
+        commonMessage.setMessage(message);
         commonMessage.setTo(user.getEmail());
         sendNotificationMessage(commonMessage);
         return true;
@@ -462,10 +464,13 @@ public class UserServiceImpl implements UserService {
         User user = findById(userUUID);
         user.setDeleted(isDelete);
         // sent message
+        String message = "";
         CommonMessage commonMessage = new CommonMessage();
         commonMessage.setTitle("Xóa tài khoản");
-        commonMessage.setMessage("Tài khoản của bạn đã bị vô hiệu hóa");
+        message = isDelete ? "Tài khoản của bạn đã bị vô hiệu hóa" : "Tài khoản đã khôi phục lại như ban đầu";
+        commonMessage.setMessage(message);
         commonMessage.setTo(user.getEmail());
+        sendNotificationMessage(commonMessage);
         return true;
     }
 
