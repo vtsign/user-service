@@ -53,7 +53,7 @@ public class UserController {
                             @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
                     }),
     })
-    @GetMapping("check_exists")
+    @GetMapping("check-exists")
     public ResponseEntity<Boolean> checkUserExistByEmail(@RequestParam("email") String email) {
         // tai khoan tam xem nhu chua co tai khoan
         boolean exists = true;
