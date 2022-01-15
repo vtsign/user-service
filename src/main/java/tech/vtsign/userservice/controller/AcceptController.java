@@ -315,4 +315,24 @@ public class AcceptController {
         return ResponseEntity.ok(result);
     }
 
+    @Operation(summary = "Re-Send Activation Link")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Success",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = Boolean.class))
+                    }),
+            @ApiResponse(responseCode = "404", description = "User not found",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+            @ApiResponse(responseCode = "400", description = "field not found",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    })
+    })
+    @GetMapping("/re-get-link-activation/{email}")
+    public ResponseEntity<Boolean> reSendActivationLink(@PathVariable(name = "email") String email) {
+        return ResponseEntity.ok(userService.reSendActiveLink(email));
+    }
+
 }

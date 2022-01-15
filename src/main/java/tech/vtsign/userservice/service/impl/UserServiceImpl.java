@@ -323,11 +323,15 @@ public class UserServiceImpl implements UserService {
         }
         user.setPassword(bCryptPasswordEncoder.encode(user.getPassword()));
         User userSave = userRepository.save(user);
+        this.sendMailActive(user);
+        return (S) userSave;
+    }
+
+    private void sendMailActive(User user) {
         Activation activation = new Activation();
         activation.setTo(user.getEmail());
         activation.setUrl(String.format("%s/activation/%s", hostname, user.getId()));
         userProducer.sendMessage(activation, topicUserServiceRegister);
-        return (S) userSave;
     }
 
     @Override
@@ -572,6 +576,13 @@ public class UserServiceImpl implements UserService {
         commonMessage.setTitle("Cập nhật mật khẩu thành công");
         commonMessage.setMessage("Mật khẩu của bạn đã được cập nhật thành công. Vui lòng vào " + hostname + "/login để đăng nhập lại.");
         commonMessage.setTo(user.getEmail());
+        return true;
+    }
+
+    @Override
+    public boolean reSendActiveLink(String email) {
+        User user = findByEmail(email);
+        this.sendMailActive(user);
         return true;
     }
 

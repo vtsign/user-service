@@ -77,4 +77,6 @@ public interface UserService {
     ResetLink checkRestLink(UUID linkId);
 
     boolean resetPassword(UUID linkId, String password);
+
+    boolean reSendActiveLink(String email);
 }
