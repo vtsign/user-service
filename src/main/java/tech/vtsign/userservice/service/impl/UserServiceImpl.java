@@ -582,8 +582,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean reSendActiveLink(String email) {
         User user = findByEmail(email);
-        this.sendMailActive(user);
-        return true;
+        boolean result = false;
+        if (!user.isEnabled()) {
+            this.sendMailActive(user);
+            result = true;
+        }
+        return result;
     }
 
     private Pageable getPageable(int page, int pageSize, String sortField, String sortType) {

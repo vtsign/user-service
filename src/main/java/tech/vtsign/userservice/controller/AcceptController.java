@@ -317,7 +317,8 @@ public class AcceptController {
 
     @Operation(summary = "Re-Send Activation Link")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Success",
+            @ApiResponse(responseCode = "200", description = "true: Link active has send to your email\n" +
+                    "                                         false: Account has been activate. You can login to SYSTEM",
                     content = {
                             @Content(mediaType = "application/json", schema = @Schema(implementation = Boolean.class))
                     }),
