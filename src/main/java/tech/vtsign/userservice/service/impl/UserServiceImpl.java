@@ -377,11 +377,11 @@ public class UserServiceImpl implements UserService {
             }
 
             if (user.isBlocked()) {
-                throw new LockedException("User is blocked. Please contact admin");
+                throw new UserBlockedException("User is blocked. Please contact admin");
             }
 
             if (user.isDeleted()) {
-                throw new LockedException("User is deleted. Please contact admin");
+                throw new UserDeletedException("User is deleted. Please contact admin");
             }
 
             return Optional.of(user);

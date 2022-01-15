@@ -100,4 +100,19 @@ public class CustomResponseEntityExceptionHandler extends ResponseEntityExceptio
         return new ResponseEntity<>(exceptionResponse, HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(UserBlockedException.class)
+    public final ResponseEntity<ExceptionResponse> handleAccessDeniedException(UserBlockedException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse =
+                new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false), UserBlockedException.status.value());
+        return new ResponseEntity<>(exceptionResponse, UserBlockedException.status);
+    }
+
+    @ExceptionHandler(UserDeletedException.class)
+    public final ResponseEntity<ExceptionResponse> handleAccessDeniedException(UserDeletedException ex, WebRequest request) {
+        ExceptionResponse exceptionResponse =
+                new ExceptionResponse(new Date(), ex.getMessage(), request.getDescription(false), UserDeletedException.status.value());
+        return new ResponseEntity<>(exceptionResponse, UserDeletedException.status);
+    }
+
+
 }

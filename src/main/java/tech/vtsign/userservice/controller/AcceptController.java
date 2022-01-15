@@ -179,6 +179,14 @@ public class AcceptController {
                     content = {
                             @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
                     }),
+            @ApiResponse(responseCode = "424", description = "User has been blocked",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
+            @ApiResponse(responseCode = "425", description = "User has been deleted",
+                    content = {
+                            @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
+                    }),
             @ApiResponse(responseCode = "403", description = "Invalid email password",
                     content = {
                             @Content(mediaType = "application/json", schema = @Schema(implementation = ExceptionResponse.class))
